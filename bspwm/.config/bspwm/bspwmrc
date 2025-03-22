@@ -32,5 +32,5 @@ bspc rule -a Thunar state=floating
 bspc rule -a libreoffice state=floating
 
 
-#picom --experimental-backend &
+picom &
 polybar &

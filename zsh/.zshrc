@@ -50,5 +50,5 @@ vivavo() {
 }
 
 plugins=(git)
-source ~/.cache/wal/colors-tty.sh
+#source ~/.cache/wal/colors-tty.sh
 source $ZSH/oh-my-zsh.sh
