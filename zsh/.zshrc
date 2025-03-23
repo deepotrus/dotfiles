@@ -13,7 +13,7 @@ alias sl="ls"
 alias ks="ls"
 alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
 alias jl="jupyter-lab --port 7693"
-alias ytaudio="~/.local/bin/yt-dlp -x --no-playlist"
+alias ytaudio="yt-dlp -x --no-playlist"
 
 alias mist="ollama run mistral:7b"
 alias seek="ollama run deepseek-r1:14b"
