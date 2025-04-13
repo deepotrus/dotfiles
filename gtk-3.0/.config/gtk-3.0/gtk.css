@@ -1,0 +1,28 @@
+@import url("/home/popo/.cache/wal/colors-waybar.css");
+
+/* remove window title from Client-Side Decorations */
+.solid-csd headerbar .title {
+    font-size: 0;
+}
+
+/* hide extra window decorations/double border */
+window decoration {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+* {
+  text-shadow: none;
+}
+
+/* Custom rectangle box selection */
+.thunar .view .rubberband {
+    background: rgba(0,0,0,0.2);
+    border-color: @color1;
+}
+/* solves background selected folders in thunar*/
+.thunar .view:selected {
+    background-color: @color4;
+    color: @color0;
+}

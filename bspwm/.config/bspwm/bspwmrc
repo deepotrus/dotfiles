@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+### AUTOSTART
+eval ~/.fehbg &
+picom &
+polybar &
+
 export XDG_CURRENT_DESKTOP='bspwm'
 export _JAVA_AWT_WM_NONREPARENTING=1
 
@@ -16,10 +21,11 @@ bspc config split_ratio 0.52
 bspc config borderless_monocle true
 bspc config gapless_monocle true
 
+bspc rule -a Wrapper-2.0 monitor=primary follow=on state=floating border=off rectangle=500x600+0+0
+
+
 xsetroot -cursor_name left_ptr
 bspc config focus_follows_pointer true
 
 bspc rule -a \* state=floating
 
-picom &
-polybar &

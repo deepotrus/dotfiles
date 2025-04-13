@@ -33,8 +33,19 @@ alias listbig="du -a /home | sort -n -r | head -n 30"
 alias fastfetch="/opt/fastfetch-linux-amd64/usr/bin/fastfetch"
 alias nvim="/opt/nvim-linux-x86_64/bin/nvim"
 
+catmd() {
+  local md_file="$1"
+  pandoc "$md_file" -o /tmp/temp.html
+  firefox /tmp/temp.html
+}
+
+
+
+
+
+
 fcd() {
-  cd "$(find /home/andrei -type d | fzf)"
+  cd "$(find /home/popo -type d | fzf)"
 }
 
 # by choosing only the directory it will automatically chose a random image
