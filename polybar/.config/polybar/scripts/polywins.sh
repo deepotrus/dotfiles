@@ -21,13 +21,31 @@ ignore_windows="polybar:yad" # :-separated list of windows we want to ignore (ba
 
 # --- }}}
 
+# Function to format the window ID to include leading zeros
+format_id() {
+  printf "0x%08x" "$((0x${1#0x}))"
+}
+
 case "$1" in
 raise_or_minimize)
-  if [ "$3" = "$2" ]; then
-    wmctrl -ir "$2" -b toggle,hidden
-  else
-    wmctrl -ia "$2"
+  winstate=$(xprop -id $2 | grep window\ state | awk '{print $3}')
+  id_focused_xprop=$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $NF}')
+  id_focused=$(format_id "$id_focused_xprop")
+  if [ $winstate = "Iconic" ]; then
+    echo "Hey it really is iconic"
+    wmctrl -ir $2 -b remove,hidden && wmctrl -ia $2
+  elif [ $winstate = "Normal" ]; then
+    if [ $id_focused = $2 ]; then
+      wmctrl -ir $2 -b toggle,hidden
+    else
+      wmctrl -ia $2
+    fi
   fi
+  #if [ "$3" = "$2" ]; then
+  #  wmctrl -ir "$2" -b toggle,hidden
+  #else
+  #  wmctrl -ia "$2"
+  #fi
   ;;
 close)
   wmctrl -ic "$2"

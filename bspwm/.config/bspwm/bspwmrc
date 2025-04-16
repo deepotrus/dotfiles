@@ -27,6 +27,6 @@ bspc config gapless_monocle true
 bspc rule -a Wrapper-2.0 monitor=primary follow=on state=floating border=off rectangle=500x600+0+0
 
 xsetroot -cursor_name left_ptr
-bspc config focus_follows_pointer true
+bspc config focus_follows_pointer false
 
 bspc rule -a \* state=floating
