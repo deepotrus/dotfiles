@@ -20,7 +20,7 @@ $ sudo apt install materia-gtk-theme
 ```
 With oomox we will create a general theme and an icon theme. Don't download the release as tarballs, just clone the repo and build it.
 ```bash
-$ git clone https://github.com/themix-project/themix-gui/releases
+$ git clone --recursive https://github.com/themix-project/themix-gui.git
 ```
 Now if you cd into it and run ./gui.sh there are many uninstalled dependencies.
 ```bash
@@ -38,6 +38,9 @@ $ sudo apt install librsvg2-bin (for the binary rsvg-convert)
 $ sudo apt install libglib2.0-0
 $ sudo apt install libglib2.0-dev-bin (for missing binary glib-compile-resources)
 $ sudo apt install libgdk-pixbuf2.0-0
+$ sudo apt install meson
+$ sudo apt install npm
+$ sudo apt install optipng
 ```
 For debian 12 bookworm if you want materia theme with oomox then there is a known problem of inkscape getting stuck and fills the ram freezing your system. For this you have to force using resvg instead of inkscape. If you notive resvg does not exist for debian 12 bookworm, so you build it with rust to get the binaries. Download release from this https://github.com/linebender/resvg , cd into it and:
 ```bash
@@ -46,11 +49,12 @@ $ cd target/release
 $ sudo cp resvg /usr/bin
 ```
 Now you also need to edit source of materia inside oomox plugins, the folder is oomox/plugins/theme_materia/materia-theme
-You have to comment inside all the render_asset.sh files this: set -ueo pipefail
-and under render_assets.sh change
- if [[ ! "$(command -v inkscape || command -v rendersvg)" ]]; then
- if [[ ! "$(command -v inkscape || command -v resvg)" ]]; then
-don't know why but binaries name changed.
+By using resvg you have to make sure that the binaries name are NOT rendersvg, as shown in render_assets.sh, so here is a command which substitutes that for you (you can also create symlink)
+```bash
+$ find -name '*.sh' | xargs sed -i 's/rendersvg/resvg/g; s/--export-id/--export-area-drawing --export-id/g'
+sed '/handle-/d' -i src/gtk-2.0/assets.txt
+```
+Finally you have to comment a line inside change_colors.sh, the one with set -ueo pipefail.
 ### Last touch for thunar CSS Hacks
 I created some css hack in gtk-3.0 dotfile for thunar rubberband and selection icon bug of invisible icon when selected.
 ## Now combine everything
