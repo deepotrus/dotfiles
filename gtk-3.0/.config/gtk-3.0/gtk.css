@@ -35,6 +35,7 @@ window decoration {
 
 .flat,
 .toggle {
+    font-size: 12px;
 }
 
 .flat:hover,
@@ -42,4 +43,18 @@ window decoration {
     font-size: 12px;
     background: @color2;
     color: @color0;
+}
+
+
+#whiskermenu-window {
+    padding: 15px;
+}
+
+#whiskermenu-window  * {
+    border: 0px #ccc solid;
+    outline: none;
+}
+
+#whiskermenu-window  scrollbar {
+    background: transparent;
 }
