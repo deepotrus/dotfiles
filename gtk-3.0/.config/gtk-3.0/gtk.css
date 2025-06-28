@@ -26,3 +26,24 @@ window decoration {
     background-color: @color4;
     color: @color0;
 }
+
+
+.xfce4-panel#XfcePanelWindow {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.flat,
+.toggle {
+    font-family: 'JetBrainsMono Nerd Font';
+    font-size: 12px;
+}
+
+.flat:hover,
+.toggle:hover {
+    font-family: 'JetBrainsMono Nerd Font';
+    font-size: 12px;
+    background: @color1;
+    color: @color0;
+    border-radius: 5px;
+}
