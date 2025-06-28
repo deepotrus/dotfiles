@@ -35,15 +35,11 @@ window decoration {
 
 .flat,
 .toggle {
-    font-family: 'JetBrainsMono Nerd Font';
-    font-size: 12px;
 }
 
 .flat:hover,
 .toggle:hover {
-    font-family: 'JetBrainsMono Nerd Font';
     font-size: 12px;
-    background: @color1;
+    background: @color2;
     color: @color0;
-    border-radius: 5px;
 }
