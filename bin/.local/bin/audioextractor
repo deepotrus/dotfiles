@@ -1,0 +1,38 @@
+#!/bin/bash
+INPUT_FILE="/home/$USER/Music/trantor.m4a"
+SONG_LIST="/home/$USER/Music/songs.txt"
+OUTPUT_DIR="/home/$USER/Music"
+FADE_DURATION=5
+
+# Function to convert HH:MM:SS to seconds
+time_to_seconds() {
+  IFS=: read -r h m s <<<"$1"
+  echo $((10#$h * 3600 + 10#$m * 60 + 10#$s))
+}
+
+mapfile -t lines <songs.txt
+for line in "${lines[@]}"; do
+  name=$(echo $line | awk '{print $1}')
+  start=$(echo $line | awk '{print $2}')
+  end=$(echo $line | awk '{print $3}')
+  echo "Song: $song, Start: $start, End: $end"
+
+  printf "$name $start $end\n"
+
+  if [ "$FADE_DURATION" -eq 0 ]; then
+    ffmpeg -i "$INPUT_FILE" -ss "$start" -to "$end" -c copy "$OUTPUT_DIR/${name}.m4a" -y -loglevel error
+  else
+    start_sec=$(time_to_seconds "$start")
+    end_sec=$(time_to_seconds "$end")
+    duration=$((end_sec - start_sec))
+    fade_out_start=$((duration - FADE_DURATION))
+
+    ffmpeg -i "$INPUT_FILE" -ss "$start" -to "$end" -c copy "${name}_temp.m4a" -y
+    ffmpeg -i "${name}_temp.m4a" \
+      -af "afade=t=in:st=0:d=$FADE_DURATION,afade=t=out:st=$fade_out_start:d=$FADE_DURATION" \
+      -c:a aac -b:a 192k "$OUTPUT_DIR/${name}.m4a" -y
+    rm "${name}_temp.m4a"
+  fi
+done
+
+echo "Extraction Done!"

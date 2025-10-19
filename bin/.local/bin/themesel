@@ -1,0 +1,19 @@
+#!/bin/bash
+
+WALLPAPERS_PATH="/home/$USER/Pictures/walls"
+
+wallpaper=$(sxiv -t -o $WALLPAPERS_PATH | xargs echo)
+wal -c
+wal -i $wallpaper
+
+#xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorHDMI-0/workspace0/last-image -s $wallpaper
+
+# Get all connected monitors
+monitors=$(xrandr --query | grep " connected" | cut -d' ' -f1)
+
+for monitor_name in $monitors; do
+  echo "Setting wallpaper for monitor: $monitor_name"
+  xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor${monitor_name}/workspace0/last-image" -s "$wallpaper"
+done
+
+walogram

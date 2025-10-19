@@ -1,0 +1,13 @@
+#!/bin/bash
+tmux new-session -d -s base
+
+#tmux new-window -t base -c 0
+tmux rename-window -t base:1 TERM
+
+tmux new-window -t base:2 -n CONS
+
+tmux split-window -t base:TERM -v
+
+tmux send-keys -t base:CONS.0 'neofetch' C-m
+
+tmux attach-session -t base:TERM

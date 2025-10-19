@@ -26,35 +26,3 @@ window decoration {
     background-color: @color4;
     color: @color0;
 }
-
-
-.xfce4-panel#XfcePanelWindow {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-.flat,
-.toggle {
-    font-size: 12px;
-}
-
-.flat:hover,
-.toggle:hover {
-    font-size: 12px;
-    background: @color2;
-    color: @color0;
-}
-
-
-#whiskermenu-window {
-    padding: 15px;
-}
-
-#whiskermenu-window  * {
-    border: 0px #ccc solid;
-    outline: none;
-}
-
-#whiskermenu-window  scrollbar {
-    background: transparent;
-}

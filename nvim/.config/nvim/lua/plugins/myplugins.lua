@@ -18,4 +18,7 @@ return {
   {
     "xiyaowong/transparent.nvim",
   },
+  {
+    "norcalli/nvim-colorizer.lua",
+  },
 }
