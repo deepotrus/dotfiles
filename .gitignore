@@ -1,1 +1,2 @@
-nvim/.config/nvim/colors/*
+nvim/.config/nvim/colors/lushwal.vim
+nvim/.config/nvim/lazy-lock.json
