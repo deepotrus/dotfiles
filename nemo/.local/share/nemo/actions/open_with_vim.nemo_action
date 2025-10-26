@@ -1,0 +1,9 @@
+[Nemo Action]
+Active=true
+Name=Open With Vim
+Comment=Open with colorized vim
+Icon-Name=format-text-code
+Exec=kitty -e vim %F
+Selection=Any
+Extensions=any;
+Quote=double
