@@ -23,19 +23,17 @@ alias s2="ssh lvd@10.1.0.92"  # LVME Chassis
 alias s3="ssh lvd@10.1.0.101" # x101 Chassis
 alias s4="ssh lvd@10.1.1.94"  # xmc Chassis
 
-
-alias pullAuto="rsync -urvP --delete-after root@omnistat.xyz:/root/Auto ~/.core"
-
-#(cat ~/.cache/wal/sequences &)
+(cat ~/.cache/wal/sequences &)
 
 # My stable programs
 alias listbig="du -a /home | sort -n -r | head -n 30"
 alias fastfetch="/opt/fastfetch-linux-amd64/usr/bin/fastfetch"
-alias nvim="/opt/nvim-linux-x86_64/bin/nvim"
+#alias nvim="/opt/nvim-linux-x86_64/bin/nvim"
+alias vivado="vivado -nolog -nojournal"
 
 catmd() {
   local md_file="$1"
-  pandoc "$md_file" -o /tmp/temp.html
+  pandoc --webtex "$md_file" -o /tmp/temp.html
   firefox /tmp/temp.html
 }
 
@@ -45,7 +43,10 @@ catmd() {
 
 
 fcd() {
-  cd "$(find /home/popo -type d | fzf)"
+  cd "$(find /home/$USER -type d | fzf)"
+}
+sfcd() {
+  cd "$(find / -type d | fzf)"
 }
 
 # by choosing only the directory it will automatically chose a random image
@@ -59,6 +60,15 @@ vivavo() {
   export _JAVA_AWT_WM_NONREPARENTING=1
   vivado
 }
+
+# ------------- ZSH HISTORY MANAGEMENT ----------------
+
+setopt histignorespace
+setopt histignorealldups
+setopt histreduceblanks
+
+HISTORY_IGNORE="(ls|bg|fg|cd|exit|clear|h|htop|zsh)"
+HIST_IGNORE_PATTERN='^(cd|vim)*[[:space:]]*'
 
 plugins=(git)
 #source ~/.cache/wal/colors-tty.sh

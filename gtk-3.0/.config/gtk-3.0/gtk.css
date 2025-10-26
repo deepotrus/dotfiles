@@ -19,3 +19,14 @@ window decoration {
 * {
   text-shadow: none;
 }
+
+/* Custom rectangle box selection */
+.thunar .view .rubberband {
+    background: rgba(0,0,0,0.2);
+    border-color: @color1;
+}
+/* solves background selected folders in thunar*/
+.thunar .view:selected {
+    background-color: @color4;
+    color: @color0;
+}
