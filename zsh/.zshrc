@@ -71,5 +71,5 @@ HISTORY_IGNORE="(ls|bg|fg|cd|exit|clear|h|htop|zsh)"
 HIST_IGNORE_PATTERN='^(cd|vim)*[[:space:]]*'
 
 plugins=(git)
-#source ~/.cache/wal/colors-tty.sh
+source ~/.cache/wal/colors-tty.sh
 source $ZSH/oh-my-zsh.sh
