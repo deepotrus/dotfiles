@@ -12,7 +12,7 @@ Here pip will install pywal under .local/bin and The last export is for running 
 ```bash
 $ wal -i /path/to/wallpaper
 ```
-## How to create custom theme for thunar and libreoffice with themix
+## How to create custom theme for nemo and libreoffice with themix
 I currently use oomox for creating colorized versions of materia gtk theme (the best imho). Of course oomox on debian 12 is out of date and to make it work there are many caveats.
 ```bash
 $ sudo apt install lxappearance
@@ -55,7 +55,31 @@ $ find -name '*.sh' | xargs sed -i 's/rendersvg/resvg/g; s/--export-id/--export-
 sed '/handle-/d' -i src/gtk-2.0/assets.txt
 ```
 Finally you have to comment a line inside change_colors.sh, the one with set -ueo pipefail.
-### Last touch for thunar CSS Hacks
-I created some css hack in gtk-3.0 dotfile for thunar rubberband and selection icon bug of invisible icon when selected.
+### Note on Xfce4 borders and gtk themes
+Few people know that in xfce4 you can set independently the borders of the windows, and the gtk theme for the "internal" of the window.
+It is possible to make xfwm inherit the colors from gtk theme, which is create with themix-gui. Changing gtk theme would automatically change the border color of your open applications runtime. Here, stow is used for creating symbolic links automatically.
+```bash
+$ cd dotfiles
+$ stow xfwm-borders
+```
+Then, in xfce4 go to Settings > Window Manager > Style, and select xfwm-borders.
+### Compositor and Activity Switcher
+Use as picom as compositor for animations and skippy-xd for alt-tab behavior.
+```bash
+$ sudo apt install picom
+$ cd dotfiles
+$ stow picom
+```
+Then get skippy from here:
+```bash
+$ git clone https://github.com/felixfung/skippy-xd.git
+```
+Follow installation instructions, and there are some dependencies which in debian 12 is easily doable.
+Now add to autostart the daemons of both picom and skippy-xd.
+```bash
+$ cd dotfiles && stow autostart
+```
+Reboot!
+
 ## Now combine everything
 With lxappearance GUI it is easy to set new custom themes with pywal colors, exported with oomox in the folders ~/.themes (general theme) and ~/.icons (for file manager icons). If you wish to use a custom cursor theme, you will have to put the files inside ~/.icons, and lxappearance will recognize it.
