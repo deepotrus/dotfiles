@@ -26,7 +26,7 @@ alias s4="ssh lvd@10.1.1.94"  # xmc Chassis
 
 alias pullAuto="rsync -urvP --delete-after root@omnistat.xyz:/root/Auto ~/.core"
 
-(cat ~/.cache/wal/sequences &)
+#(cat ~/.cache/wal/sequences &)
 
 # My stable programs
 alias listbig="du -a /home | sort -n -r | head -n 30"
