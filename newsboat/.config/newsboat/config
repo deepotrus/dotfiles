@@ -1,0 +1,41 @@
+# Automaticall reload feeds on startup
+auto-reload yes
+goto-first-unread no
+
+color background	default default
+color listnormal	default default
+color listfocus	black	yellow	dim
+color listnormal_unread	default default	bold
+color listfocus_unread	black	yellow	underline
+color info		default	red
+color article		default	default
+
+# Browser to open videos (using mpv for direct playback)
+#browser "mpv %u"
+
+# Or use your default browser
+#browser "xdg-open %u"
+
+# Vim-like keybindings
+bind-key j down
+bind-key k up
+bind-key J next-feed
+bind-key K prev-feed
+
+feedlist-format "%4 %t"
+
+
+highlight all "(---|━━━|▸|🎥|📰|💻).*" default
+highlight feedlist ".*([0/0])" black
+highlight article "(^Feed:.*|^Title:.*|^Author:.*)" cyan default bold
+highlight article "(^Link:.*|^Date:.*)" default default
+highlight article "https://[^ ]+" green default
+highlight article "^(Title):.*$" blue default
+highlight article "\\[[0-9][0-9]*\\]" yellow default bold
+highlight article "\\[image\\ [0-9]+\\]" green default bold
+highlight article "\\[embedded flash: [0-9][0-9]*\\]" green default bold
+highlight article ":.*\\(link\\)$" cyan default
+highlight article ":.*\\(image\\)$" blue default
+highlight article ":.*\\(embedded flash\\)$" magenta default
+
+browser "~/.config/newsboat/linkhandler.sh %u"

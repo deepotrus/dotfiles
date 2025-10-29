@@ -1,0 +1,77 @@
+configuration {
+    show-icons: false;
+    display-drun: "";
+    disable-history: true;
+    sidebar-mode: false;
+}
+
+@theme "~/.cache/wal/colors-rofi-dark.rasi"
+
+* {
+    background-color: @background;
+    text-color: @foreground;
+    font: "JetBrainsMono Nerd Font 9";
+}
+
+window {
+    width: 250px;
+    height: 280px;
+    border: 1px;
+    border-color: @selected-active-background;
+    border-radius: 6px;
+    background-color: @background-color;
+    location: northwest;
+    anchor: northwest;
+    x-offset: 10;
+    y-offset: 10;
+}
+
+mainbox {
+    background-color: @background-color;
+    padding: 5px;
+}
+
+inputbar {
+    children: [prompt];
+    background-color: @background;
+    border-radius: 2px;
+    padding: 10px;
+    margin: 0px 0px 10px 0px;
+}
+
+prompt {
+    background-color: @background;
+    padding: 2px;
+    text-color: @urgent-background;
+    border-radius: 3px;
+    horizontal-align: 0.5;
+}
+
+listview {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+    columns: 1;
+    lines: 12;
+    background-color: @background-color;
+    spacing: 2px;
+}
+
+element {
+    padding: 4px;
+    background-color: @background-color;
+    text-color: @foreground;
+    border-radius: 6px;
+}
+
+element selected {
+    background-color: @selected-normal-background;
+    text-color: @selected-normal-foreground;
+    border-radius: 6px;
+}
+
+element-text {
+    background-color: inherit;
+    text-color: inherit;
+    horizontal-align: 0.5;
+}

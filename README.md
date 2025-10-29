@@ -80,6 +80,26 @@ Now add to autostart the daemons of both picom and skippy-xd.
 $ cd dotfiles && stow autostart
 ```
 Reboot!
-
 ## Now combine everything
 With lxappearance GUI it is easy to set new custom themes with pywal colors, exported with oomox in the folders ~/.themes (general theme) and ~/.icons (for file manager icons). If you wish to use a custom cursor theme, you will have to put the files inside ~/.icons, and lxappearance will recognize it.
+### Pywalfox on Debian 12
+So, on debian it is a little bit harder, to make it easier you install pywalfox via python pip. But, the stable release has relative path which creates issue for Firefox to find the executable during runtime. So instead of running pip install pywalfox you do:
+```bash
+$ pip3 install --index-url https://test.pypi.org/simple/ pywalfox==2.8.0rc1
+$ pywalfox install
+```
+Then download the add on from firefox and fetch colors.
+### Walogram on Debian 12
+Walogram is the new version of wal-telegram, and is not on github but on codeberg:
+```bash
+$ git clone https://codeberg.org/thirtysix/walogram.git
+$ cd walogram
+$ make install (as root if needed)
+($ make uninstall to remove)
+```
+After you run wal and update colorschem with pywal, run walogram:
+```bash
+$ walogram
+```
+Open telegram and go to Settings > Chat Settings, click on choose from file, navigate to ~/.cache/walogram/wal.tdesktop-theme. Click on keep changes.
+Now whenever you change your pywal theme, also the telegram colors will change accordingly.
