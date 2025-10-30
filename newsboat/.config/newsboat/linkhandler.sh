@@ -53,11 +53,11 @@ open_image_tmp() {
 
 
 case "$url" in
-	*v.redd.it/*)
+	*v.redd.it/*|*gif*)
 		open_video_auto "$url"
 		;;
 
-    *youtube.com/watch*|*youtube.com/playlist*|*youtube.com/shorts*|*youtu.be*|*v.redd.it/*)
+    *youtube.com/watch*|*youtube.com/playlist*|*youtube.com/shorts*|*youtu.be*)
         open_video "$url"
         ;;
 
