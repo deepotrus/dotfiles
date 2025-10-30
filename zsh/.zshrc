@@ -14,6 +14,7 @@ alias ks="ls"
 alias h="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
 alias jl="jupyter-lab --port 7693"
 alias ytaudio="yt-dlp -x --no-playlist"
+alias n="newsboat"
 
 alias mist="ollama run mistral:7b"
 alias seek="ollama run deepseek-r1:14b"

@@ -10,20 +10,18 @@ configuration {
 * {
     background-color: @background;
     text-color: @foreground;
-    font: "JetBrainsMono Nerd Font 9";
+    font: "JetBrainsMono Nerd Font 11";
 }
 
 window {
-    width: 250px;
-    height: 280px;
+    width: 150px;
+    height: 320px;
     border: 1px;
     border-color: @selected-active-background;
     border-radius: 6px;
     background-color: @background-color;
-    location: northwest;
-    anchor: northwest;
-    x-offset: 10;
-    y-offset: 10;
+    location: center;
+    anchor: center;
 }
 
 mainbox {
