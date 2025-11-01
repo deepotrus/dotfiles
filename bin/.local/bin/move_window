@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Move window by 30 pixels in specified direction
+# Usage: move_window --left|--right|--up|--down
+
+MOVE_PIXELS=128
+
+# Get active window
+WIN=$(xdotool getactivewindow)
+WIN_HEX=$(printf "0x%08x" $WIN)
+
+# Get current window position (frame coordinates from xwininfo)
+CURRENT_X=$(xwininfo -id $WIN | grep "Absolute upper-left X" | awk '{print $4}')
+CURRENT_Y=$(xwininfo -id $WIN | grep "Absolute upper-left Y" | awk '{print $4}')
+
+# Calculate new position based on direction
+case "$1" in
+    --left)
+        NEW_X=$((CURRENT_X - MOVE_PIXELS))
+        NEW_Y=$CURRENT_Y
+        ;;
+    --right)
+        NEW_X=$((CURRENT_X + MOVE_PIXELS))
+        NEW_Y=$CURRENT_Y
+        ;;
+    --up)
+        NEW_X=$CURRENT_X
+        NEW_Y=$((CURRENT_Y - MOVE_PIXELS))
+        ;;
+    --down)
+        NEW_X=$CURRENT_X
+        NEW_Y=$((CURRENT_Y + MOVE_PIXELS))
+        ;;
+    *)
+        echo "Usage: $0 --left|--right|--up|--down"
+        exit 1
+        ;;
+esac
+
+# Move the window
+wmctrl -i -r $WIN_HEX -e 0,$NEW_X,$NEW_Y,-1,-1
