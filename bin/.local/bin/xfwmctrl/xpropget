@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# xprop with PID is RELIABLE for getting window IDs of
+# opened windows, it's not unique mapping (e.g. you have 2 firefox
+# windows opened) but you are sure that the wmctrl with those pids
+# has the correct window ids
+# this because xprop is NOT readable and has bad design for
+# window id
+
+echo "Click on a window to select it..."
+
+# Run xprop without args - it waits for click and outputs to stdout
+# Parse the first line which contains the window id
+WIN_PID=$(xprop | grep -m 1 "^_NET_WM_PID" | awk '{print $3}')
+
+echo "PID Of selected win: $WIN_PID"
+
+wmctrl -plG | grep $WIN_PID

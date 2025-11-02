@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Using xprop for window properties because it is general
+# Using wmctrl for geometry
+# NOT using xdotool
+#
+# xprop allows to get DECORATIONS values:
+# _NET_FRAME_EXTENTS(CARDINAL) = 8, 8, 26, 8
+# WM_CLASS(STRING) = "nemo", "Nemo"
+
+# DEBUG CASE
+case "$2" in
+  kitty)
+    echo "Moving Kitty"
+    WIN_ID=0x0440000b # kitty
+    WM_CLASS="kitty"
+    ;;
+  nemo)
+    echo "Moving Nemo"
+    WIN_ID=0x03e00007 # Nemo
+    WM_CLASS="Nemo"
+    ;;
+  mate)
+    echo "Moving mate calc"
+    WIN_ID=0x02200003 # Mate calc
+    WM_CLASS="Mate-calc"
+    ;;
+  firefox)
+    echo "Moving firefox"
+    WIN_ID=0x03c0002c # Firefox
+    WM_CLASS="firefox-esr"
+    ;;
+  *)
+    echo "Moving current window"
+    WIN_ID=$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}' | tr -d ',')
+    WM_CLASS=$(xprop -id $WIN_ID WM_CLASS | awk -F'"' '{print $4}') # accessing wm class via xprop
+    WIN_ID=$(printf "0x%08x" $WIN_ID)
+    ;;
+esac
+
+if [ -z "$WIN_ID" ]; then
+    echo "No active window found"
+    exit 1
+fi
+
+echo "Choosen win id: $WIN_ID"
+echo "Choosen wm class: $WM_CLASS"
+
+wmctrl -lG | grep $WIN_ID
+
+# Extract data from wmctrl
+#CURR_X=$( wmctrl -lG | grep $WIN_ID | awk '{print $3}')
+#CURR_Y=$( wmctrl -lG | grep $WIN_ID | awk '{print $4}')
+#CURR_W=$( wmctrl -lG | grep $WIN_ID | awk '{print $5}')
+#CURR_H=$( wmctrl -lG | grep $WIN_ID | awk '{print $6}')
+
+# Extract one liner
+read -r CURR_X CURR_Y CURR_W CURR_H <<< $(wmctrl -lG | grep $WIN_ID | awk '{print $3,$4,$5,$6}')
+read -r FRAME_LEFT FRAME_RIGHT FRAME_TOP FRAME_BOT <<< $(xprop -id $WIN_ID _NET_FRAME_EXTENTS | awk -F'= ' '{print $2}' | tr -d ',')
+
+echo "Current x: $CURR_X"
+echo "Current y: $CURR_Y"
+echo "Current width:  $CURR_W"
+echo "Current height: $CURR_H"
+
+echo "frame left: $FRAME_LEFT"
+echo "frame right: $FRAME_RIGHT"
+echo "frame top: $FRAME_TOP"
+echo "frame bot: $FRAME_BOT"
+
+# If decorations then this will move even if it shouldn't
+#wmctrl -ir $WIN_ID -e 0,$CURR_X,$CURR_Y,$CURR_W,$CURR_H
+
+# Getting multiplier based on hardcoded window type
+get_frame_multiplier() {
+  case "$1" in
+    kitty) # particular cases
+      echo 1
+      ;;
+    firefox-esr|Nemo|Mate-calc) # expliciting these as example
+      echo 2
+      ;;
+    *)
+      echo 2 # return base multiplier of 2, which includes all xfce desktop environment windows
+      ;;
+  esac
+}
+
+echo ""
+echo $WM_CLASS
+MULTI=$(get_frame_multiplier $WM_CLASS)
+echo $MULTI
+
+# Applying frame decorators correction to make the thing stay there
+REAL_X=$((CURR_X - MULTI*FRAME_LEFT))
+REAL_Y=$((CURR_Y - MULTI*FRAME_TOP))
+
+echo "REAL_X: $REAL_X"
+echo "REAL_Y: $REAL_Y"
+
+# Inplace move for deriving multiplier value
+#wmctrl -ir $WIN_ID -e 0,$REAL_X,$REAL_Y,$CURR_W,$CURR_H
+
+PIXELS=128
+case "$1" in
+  --left)
+    NEW_X=$((REAL_X - PIXELS))  # shift
+    NEW_Y=$REAL_Y               # Costant
+    ;;
+  --right)
+    NEW_X=$((REAL_X + PIXELS))  # shift
+    NEW_Y=$REAL_Y               # Costant
+    ;;
+  --up)
+    NEW_X=$REAL_X
+    NEW_Y=$((REAL_Y - PIXELS))
+    ;;
+  --down)
+    NEW_X=$REAL_X
+    NEW_Y=$((REAL_Y + PIXELS))
+    ;;
+esac
+
+wmctrl -ir $WIN_ID -e 0,$NEW_X,$NEW_Y,$CURR_W,$CURR_H
