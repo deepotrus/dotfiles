@@ -60,6 +60,10 @@
       <property name="&lt;Alt&gt;&lt;Super&gt;Right" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --right&quot;"/>
       <property name="&lt;Alt&gt;&lt;Super&gt;Up" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --up&quot;"/>
       <property name="&lt;Alt&gt;&lt;Super&gt;Down" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --down&quot;"/>
+      <property name="&lt;Primary&gt;&lt;Super&gt;Right" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/resize_window --hgrow&quot;"/>
+      <property name="&lt;Primary&gt;&lt;Super&gt;Left" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/resize_window --hshrink&quot;"/>
+      <property name="&lt;Primary&gt;&lt;Super&gt;Down" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/resize_window --vgrow&quot;"/>
+      <property name="&lt;Primary&gt;&lt;Super&gt;Up" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/resize_window --vshrink&quot;"/>
     </property>
   </property>
   <property name="xfwm4" type="empty">

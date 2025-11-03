@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Get current window ID and WM_CLASS
+WIN_ID=$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}' | tr -d ',')
+WM_CLASS=$(xprop -id $WIN_ID WM_CLASS | awk -F'"' '{print $4}') # accessing wm class via xprop
+WIN_ID=$(printf "0x%08x" $WIN_ID)
+
+if [ -z "$WIN_ID" ]; then
+    echo "No active window found"
+    exit 1
+fi
+
+# Extract geometry info
+read -r CURR_X CURR_Y CURR_W CURR_H <<< $(wmctrl -lG | grep $WIN_ID | awk '{print $3,$4,$5,$6}')
+read -r FRAME_LEFT FRAME_RIGHT FRAME_TOP FRAME_BOT <<< $(xprop -id $WIN_ID _NET_FRAME_EXTENTS | awk -F'= ' '{print $2}' | tr -d ',')
+
+# Getting multiplier based on hardcoded window type
+get_frame_multiplier() {
+  case "$1" in
+    kitty) # particular cases
+      echo 1
+      ;;
+    firefox-esr|Nemo|Mate-calc) # expliciting these as example
+      echo 2
+      ;;
+    *)
+      echo 2 # return base multiplier of 2, which includes all xfce desktop environment windows
+      ;;
+  esac
+}
+
+MULTI=$(get_frame_multiplier $WM_CLASS)
+
+# Applying frame decorators correction to ensure that the thing stays there
+REAL_X=$((CURR_X - MULTI*FRAME_LEFT))
+REAL_Y=$((CURR_Y - MULTI*FRAME_TOP))
+
+PIXELS=128
+case "$1" in
+  --hgrow)
+    NEW_W=$((CURR_W + PIXELS))
+    NEW_H=$CURR_H
+    ;;
+  --hshrink)
+    NEW_W=$((CURR_W - PIXELS))
+    NEW_H=$CURR_H
+    ;;
+  --vshrink)
+    NEW_W=$CURR_W
+    NEW_H=$((CURR_H - PIXELS))
+    ;;
+  --vgrow)
+      NEW_W=$CURR_W
+      NEW_H=$((CURR_H + PIXELS))
+    ;;
+esac
+
+wmctrl -ir $WIN_ID -e 0,$REAL_X,$REAL_Y,$NEW_W,$NEW_H
