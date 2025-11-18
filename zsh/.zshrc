@@ -11,14 +11,11 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 alias ..="cd .."
 alias sl="ls"
 alias ks="ls"
+alias hx="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
+alias h='cmd=$(history | cut -c 8- | sort | uniq | fzf) && [[ -n $cmd ]] && eval "$cmd"'
 alias jl="jupyter-lab --port 7693"
 alias ytaudio="yt-dlp -x --no-playlist"
 alias n="newsboat"
-
-# history aliases
-alias h='cmd=$(history | cut -c 8- | sort | uniq | fzf -e) && [[ -n $cmd ]] && eval "$cmd"'
-alias hc="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
-alias hl="history | cut -c 8- | sort | uniq | fzf"
 
 alias mist="ollama run mistral:7b"
 alias seek="ollama run deepseek-r1:14b"
