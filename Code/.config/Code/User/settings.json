@@ -6,5 +6,6 @@
     "editor.tabSize": 2,
     "window.titleBarStyle": "native",
     "window.customTitleBarVisibility": "never",
-    "window.menuStyle": "native"
+    "window.menuStyle": "native",
+    "claudeCode.preferredLocation": "panel"
 }
