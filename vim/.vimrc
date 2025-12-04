@@ -14,5 +14,5 @@ call plug#end()
 
 nnoremap <F3> :NERDTreeToggle<CR>
 
-# Notes
-# after adding a plugin, open vim and :PlugInstall
+" Notes
+" after adding a plugin, open vim and :PlugInstall
