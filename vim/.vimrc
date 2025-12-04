@@ -4,13 +4,10 @@ set number
 
 call plug#begin()
 Plug 'dylanaraps/wal.vim'
+Plug 'preservim/nerdtree'
 call plug#end()
 
 colorscheme wal
-
-call plug#begin()
-Plug 'preservim/nerdtree'
-call plug#end()
 
 nnoremap <F3> :NERDTreeToggle<CR>
 
