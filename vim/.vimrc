@@ -2,8 +2,8 @@ inoremap jk <Esc>
 inoremap kj <Esc>
 set number
 
-# systemwide copy paste from vim, requirements: sudo apt install vim-gtk3
-# with this you can yank from vim and past anywhere
+" systemwide copy paste from vim, requirements: sudo apt install vim-gtk3
+" with this you can yank from vim and past anywhere
 set clipboard=unnamedplus
 
 call plug#begin()
