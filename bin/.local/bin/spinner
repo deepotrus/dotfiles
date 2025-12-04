@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Spinner Animation CLI Tool
+# Usage: command | spinner
+# Displays a rotating bar animation while processing piped input
+
+# CLI Commands for testing the animation
+# for i in {1..5}; do echo "Line $i"; sleep 0.5; done | spinner
+
+
+# Configuration
+FRAMES=('-' '\' '|' '/')
+#FRAMES=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+FRAMES=('(* )  ( *)' ' (* )( *) ' ' ( *)(* ) ' ' (* )( *) ')
+FRAME_INTERVAL=0.14  # seconds
+
+# ANSI escape codes
+HIDE_CURSOR='\e[?25l'
+SHOW_CURSOR='\e[?25h'
+CLEAR_LINE='\e[K'
+
+# Cleanup function - restores terminal state
+cleanup() {
+    # Kill spinner background process
+    kill $spinner_bg_pid 2>/dev/null
+    wait $spinner_bg_pid 2>/dev/null
+    # Clear spinner line and restore cursor
+    printf "\r$CLEAR_LINE$SHOW_CURSOR" >&2
+}
+
+# Trap signals to ensure cleanup happens
+trap cleanup EXIT INT TERM
+
+# Hide cursor for cleaner animation
+printf "$HIDE_CURSOR" >&2
+
+# Start spinner animation in background (outputs to stderr)
+spinner_pid=$$
+(
+    frame_index=0
+    while kill -0 $spinner_pid 2>/dev/null; do
+        printf "\r${FRAMES[$frame_index]} $CLEAR_LINE" >&2
+        frame_index=$(((frame_index + 1) % 4))
+        sleep $FRAME_INTERVAL
+    done
+) &
+spinner_bg_pid=$!
+
+# Pass through stdin to stdout in real-time
+while IFS= read -r line; do
+    echo "$line"
+done
+
+# Cleanup is handled by trap on exit
