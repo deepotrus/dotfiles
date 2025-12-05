@@ -1,14 +1,12 @@
 zstyle ':omz:update' mode disabled  # disable automatic updates
-
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
 ZSH_THEME="alanpeabody"
 
-# Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 export PATH="${PATH}:${HOME}/.local/bin/"
 
 # -------------- ALIASES --------------
 alias ..="cd .."
+alias ...="cd ../.."
 alias sl="ls"
 alias ks="ls"
 alias hx="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
@@ -34,14 +32,10 @@ wal-tile() {
 setopt histignorespace
 setopt histignorealldups
 setopt histreduceblanks
-
 HISTORY_IGNORE="(ls|bg|fg|cd|exit|clear|h|htop|zsh)"
-HIST_IGNORE_PATTERN='^(cd|vim)*[[:space:]]*'
 
-
-plugins=(git)
-
+#source ~/.cache/wal/colors-tty.sh
 (cat ~/.cache/wal/sequences &)
 
-source ~/.cache/wal/colors-tty.sh
+plugins=(git)
 source $ZSH/oh-my-zsh.sh
