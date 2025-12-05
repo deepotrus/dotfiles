@@ -13,24 +13,13 @@ alias sl="ls"
 alias ks="ls"
 alias hx="history | cut -c 8- | sort | uniq | fzf | tr -d '\n' | xclip -selection c"
 alias h='cmd=$(history | cut -c 8- | sort | uniq | fzf) && [[ -n $cmd ]] && eval "$cmd"'
-alias jl="jupyter-lab --port 7693"
 alias ytaudio="yt-dlp -x --no-playlist"
 alias n="newsboat"
-
-alias mist="ollama run mistral:7b"
-alias seek="ollama run deepseek-r1:14b"
-
-alias s1="ssh lvd@10.1.0.250" # LVPX Chassis
-alias s2="ssh lvd@10.1.0.92"  # LVME Chassis
-alias s3="ssh lvd@10.1.0.101" # x101 Chassis
-alias s4="ssh lvd@10.1.1.94"  # xmc Chassis
 
 (cat ~/.cache/wal/sequences &)
 
 # My stable programs
 alias listbig="du -a /home | sort -n -r | head -n 30"
-alias fastfetch="/opt/fastfetch-linux-amd64/usr/bin/fastfetch"
-#alias nvim="/opt/nvim-linux-x86_64/bin/nvim"
 alias vivado="vivado -nolog -nojournal"
 
 catmd() {
@@ -38,11 +27,6 @@ catmd() {
   pandoc --webtex "$md_file" -o /tmp/temp.html
   firefox /tmp/temp.html
 }
-
-
-
-
-
 
 fcd() {
   cd "$(find /home/$USER -type d | fzf)"
