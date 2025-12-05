@@ -1,5 +1,15 @@
 # Debian 12 Bookworm Personal Dotfiles
 These are my personal dotfiles for the configuration and personalization of my desktop linux. I have chosen Debian 12 as a challenge for compiling from source all programs and dependencies, and having it stable.
+## Remote dots
+There are remote dotsfile for remote machines which have different configuration from the local.
+```shell
+$ scp -r .remotedots user@remotehost:/home/user/
+$ ssh user@remotehost
+$ cd ~/.remotedots
+$ stow vim
+$ stow tmux
+```
+For example, vim config for remote includes OSC 52 clipboard for vim yanking in ssh sessions. This allows for setups with tmux, ssh and edit remote files with vim, yank some text and now it is available on local machine clipboard.
 ## How to rice with pywal
 I use pywal16, from github.com/eylles/pywal16 which i install on bookworm with python into a python environment:
 ```shell
