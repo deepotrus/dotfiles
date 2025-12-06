@@ -1,19 +1,46 @@
 #!/bin/bash
+# this script assumes you created pywal themes with themix gui
+# and that you have wallpapers in ~/.themes/walls
+# ~/.themes/pywal-materia-theme1
+# ~/.themes/walls/wallpaper1
+# ~/.icons/icons-theme1
 
-WALLPAPERS_PATH="/home/$USER/Pictures/walls"
+WALLPAPERS_PATH="/home/$USER/.themes/walls"
 
 wallpaper=$(sxiv -t -o $WALLPAPERS_PATH | xargs echo)
+WALLPAPER_FILE=$(basename "$wallpaper")
+THEME_ID=$(basename "$WALLPAPER_FILE" | cut -d'-' -f2 | cut -d'.' -f1)
+
+# Take all connected monitors with awk, and use () to convert to bash array
+CONNECTED_MONITORS=($(xrandr | grep ' connected' | awk '{print$1}'))
+
+# XFCE4 expects e.g. monitorDP-0, monitorHDMI-0
+XFCE4_MONITORS=($(for mon in "${CONNECTED_MONITORS[@]}"; do echo "monitor$mon"; done))
+
+# For all monitors apply new background
+for mon in "${XFCE4_MONITORS[@]}"; do
+  xfconf-query -c xfce4-desktop -p /backdrop/screen0/$mon/workspace0/last-image -s ~/.themes/walls/$WALLPAPER_FILE
+done
+
+# Change pywal materia theme, assumes themes are stored inside ~/.themes/
+xfconf-query -c xsettings -p /Net/ThemeName -s pywal-materia-$THEME_ID
+
+# Change pywal icons theme
+xfconf-query -c xsettings -p /Net/IconThemeName -s icons-$THEME_ID
+
+# Change terminal colors
 wal -c
 wal -i $wallpaper
 
-#xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorHDMI-0/workspace0/last-image -s $wallpaper
-
-# Get all connected monitors
-monitors=$(xrandr --query | grep " connected" | cut -d' ' -f1)
-
-for monitor_name in $monitors; do
-  echo "Setting wallpaper for monitor: $monitor_name"
-  xfconf-query -c xfce4-desktop -p "/backdrop/screen0/monitor${monitor_name}/workspace0/last-image" -s "$wallpaper"
-done
-
+# Change telegram pywal theme
 walogram
+
+# ----- APPENDIX -----
+# Steps used to build this utility
+#xfconf-query --list
+#xfconf-query -c xfce4-desktop --list
+#
+echo $wallpaper
+echo $THEME_ID
+#THEME_ID=$1
+#xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorDP-0/workspace0/last-image -s ~/.themes/pywal-materia-po9yl9/wallhaven-po9yl9.jpg
