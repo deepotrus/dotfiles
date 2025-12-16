@@ -74,7 +74,7 @@ echo "frame bot: $FRAME_BOT"
 # Getting multiplier based on hardcoded window type
 get_frame_multiplier() {
   case "$1" in
-    kitty) # particular cases
+    kitty|VSCodium) # particular cases
       echo 1
       ;;
     firefox-esr|Nemo|Mate-calc) # expliciting these as example
