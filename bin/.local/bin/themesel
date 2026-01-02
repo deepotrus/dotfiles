@@ -5,7 +5,40 @@
 # ~/.themes/walls/wallpaper1
 # ~/.icons/icons-theme1
 
-WALLPAPERS_PATH="/home/$USER/.themes/walls"
+MODE="dark"
+# Parse options (supports -l and --light)
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -l|--light)
+      MODE="light"
+      shift
+      ;;
+    --dark)
+      MODE="dark"
+      shift
+      ;;
+    --) # end of options
+      shift
+      break
+      ;;
+    -*) # unknown short/long option
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+    *) # first non-option is STYLE argument
+      STYLE="$1"
+      shift
+      # preserve other positional args if needed; break if only STYLE expected
+      ;;
+  esac
+done
+
+WAL_FLAGS=()
+if [ "$MODE" = "light" ]; then
+  WAL_FLAGS+=("-l")
+fi
+
+WALLPAPERS_PATH="/home/$USER/.themes/walls/$MODE"
 
 wallpaper=$(sxiv -t -o $WALLPAPERS_PATH | xargs echo)
 WALLPAPER_FILE=$(basename "$wallpaper")
@@ -19,18 +52,18 @@ XFCE4_MONITORS=($(for mon in "${CONNECTED_MONITORS[@]}"; do echo "monitor$mon"; 
 
 # For all monitors apply new background
 for mon in "${XFCE4_MONITORS[@]}"; do
-  xfconf-query -c xfce4-desktop -p /backdrop/screen0/$mon/workspace0/last-image -s ~/.themes/walls/$WALLPAPER_FILE
+  xfconf-query -c xfce4-desktop -p /backdrop/screen0/$mon/workspace0/last-image -s ~/.themes/walls/$MODE/$WALLPAPER_FILE
 done
 
 # Change pywal materia theme, assumes themes are stored inside ~/.themes/
-xfconf-query -c xsettings -p /Net/ThemeName -s pywal-materia-$THEME_ID
+xfconf-query -c xsettings -p /Net/ThemeName -s $MODE/pywal-materia-$THEME_ID
 
 # Change pywal icons theme
 xfconf-query -c xsettings -p /Net/IconThemeName -s icons-$THEME_ID
 
 # Change terminal colors
 wal -c
-wal -i $wallpaper
+wal "${WAL_FLAGS[@]}" -i $wallpaper
 
 # Change telegram pywal theme
 walogram
