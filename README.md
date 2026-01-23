@@ -99,7 +99,7 @@ $ pip3 install --index-url https://test.pypi.org/simple/ pywalfox==2.8.0rc1
 $ pywalfox install
 ```
 Then download the add on from firefox and fetch colors.
-### Walogram on Debian 12
+### Walogram, aka Pywal for Telegram
 Walogram is the new version of wal-telegram, and is not on github but on codeberg:
 ```bash
 $ git clone https://codeberg.org/thirtysix/walogram.git
@@ -113,3 +113,10 @@ $ walogram
 ```
 Open telegram and go to Settings > Chat Settings, click on choose from file, navigate to ~/.cache/walogram/wal.tdesktop-theme. Click on keep changes.
 Now whenever you change your pywal theme, also the telegram colors will change accordingly.
+
+### Firefox 
+Let xfce4 handle firefox decorations.
+In about:config look for browser.tabs.inTitlebar and set to 0
+
+### Xfwm colored and rounded borders
+There are 2 themes for xfwm borders, both provide colored borders to all xfce4 decorated windows (active and inactive), but the second one includes rounded borders which was adjusted by me for picom compositor with rounded corner option. This allows to have rounded and colored borders on Xfce4!
