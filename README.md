@@ -107,3 +107,13 @@ Stowing the dotfiles into ~/.config/xfce4 is not enough for the update to take e
 $ stow xfce4
 $ sudo reboot
 ```
+
+### Stowing tmux
+I use tpm for tmux plugins. It is necessary to clone the tpm plugin from github in the correct dir:
+```bash
+$ cd dotfiles
+$ stow tmux
+$ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+$ tmux source ~/.tmux.conf
+```
+Then open tmux and insert command prefix + I to install plugins!
