@@ -59,7 +59,7 @@ done
 xfconf-query -c xsettings -p /Net/ThemeName -s pywal-materia-themes/$MODE/pywal-materia-$THEME_ID
 
 # Change pywal icons theme
-xfconf-query -c xsettings -p /Net/IconThemeName -s icons-$THEME_ID
+xfconf-query -c xsettings -p /Net/IconThemeName -s pywal-icons/icons-$THEME_ID
 
 # Change terminal colors
 wal -c
