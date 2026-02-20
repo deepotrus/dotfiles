@@ -101,3 +101,9 @@ Now whenever you change your pywal theme, also the telegram colors will change a
 ### Firefox 
 Let xfce4 handle firefox decorations.
 In about:config look for browser.tabs.inTitlebar and set to 0
+### Stowing XFCE4
+Stowing the dotfiles into ~/.config/xfce4 is not enough for the update to take effect. XFCE4 reads its config from xfconf (an in-memory daemon), not directly from XML files on disk. The xml files ~/.config/xfce4 are used only to initialize xfconf when no in-memory config exists. So no even a log out log in will update the new stowed xfce4 config. The simplest solution is to just reboot the system after stowing:
+```bash
+$ stow xfce4
+$ sudo reboot
+```
