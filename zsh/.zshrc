@@ -14,6 +14,7 @@ alias h='cmd=$(history | cut -c 8- | sort | uniq | fzf) && [[ -n $cmd ]] && eval
 alias ytaudio="yt-dlp -x --no-playlist"
 alias n="newsboat"
 alias vivado="vivado -nolog -nojournal"
+alias vim="nvim"
 
 # -------------- FUNCTIONS --------------
 catmd() {
