@@ -56,6 +56,7 @@
       <property name="&lt;Super&gt;space" type="string" value="rofi -show drun"/>
       <property name="&lt;Super&gt;e" type="string" value="nemo"/>
       <property name="&lt;Alt&gt;Tab" type="string" value="skippy-xd  --switch --next"/>
+      <property name="F11" type="string" value="skippy-xd  --expose"/>
       <property name="&lt;Alt&gt;&lt;Super&gt;Left" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --left&quot;"/>
       <property name="&lt;Alt&gt;&lt;Super&gt;Right" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --right&quot;"/>
       <property name="&lt;Alt&gt;&lt;Super&gt;Up" type="string" value="sh -c &quot;$HOME/.local/bin/xfwmctrl/move_window --up&quot;"/>

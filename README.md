@@ -65,13 +65,14 @@ $ git clone https://github.com/felixfung/skippy-xd.git
 ```
 For Debian 13 the installation instructions are provided here. For compiling skippy-xd there are some x dev packages required and some image libraries:
 ```bash
+$ sudo apt install libxft-dev libx11-dev
 $ sudo apt install libxcomposite-dev libxdamage-dev libxfixes-dev libxinerama-dev
 $ sudo apt install libjpeg-dev libgif-dev
 ```
 Then cd into the skippy-xd repo and
 ```bash
 $ make
-$ make install
+$ sudo make install
 $ skippy-xd --start-daemon
 ```
 There are more infos on the official page on how to use skippy-xd!
@@ -98,9 +99,9 @@ $ walogram
 Open telegram and go to Settings > Chat Settings, click on choose from file, navigate to ~/.cache/walogram/wal.tdesktop-theme. Click on keep changes.
 Now whenever you change your pywal theme, also the telegram colors will change accordingly.
 
-### Firefox 
-Let xfce4 handle firefox decorations.
-In about:config look for browser.tabs.inTitlebar and set to 0
+### Firefox with Picom
+Let xfce4 handle firefox decorations to avoid having big blurred borders artifacts when activating picom as compositor.
+For this just go in firefox to about:config look for browser.tabs.inTitlebar and set to 0
 ### Stowing XFCE4
 Stowing the dotfiles into ~/.config/xfce4 is not enough for the update to take effect. XFCE4 reads its config from xfconf (an in-memory daemon), not directly from XML files on disk. The xml files ~/.config/xfce4 are used only to initialize xfconf when no in-memory config exists. So no even a log out log in will update the new stowed xfce4 config. The simplest solution is to just reboot the system after stowing:
 ```bash
