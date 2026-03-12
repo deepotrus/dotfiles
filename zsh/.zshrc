@@ -40,3 +40,4 @@ HISTORY_IGNORE="(ls|bg|fg|cd|exit|clear|h|htop|zsh)"
 
 plugins=(git)
 source $ZSH/oh-my-zsh.sh
+export PATH="$HOME/vcpkg:$PATH"

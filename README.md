@@ -118,3 +118,74 @@ $ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 $ tmux source ~/.tmux.conf
 ```
 Then open tmux and insert command prefix + I to install plugins!
+
+## Fonts
+I personally use fonts downloaded from https://www.nerdfonts.com/font-downloads. In particular JetBrainsMono Nerd Font and Symbols Nerd Font. Download them, extract and put them inside ~/.local/share/fonts.
+```bash
+$ fs-cache -vr
+```
+Now you have symbols with kitty terminal symbols Ctrl+Shift+U, and nice font on Rofi launcher. These fonts can be used e.g. on Polybar. For kitty terminal it is needed to map the symbols as shown in the kitty.conf file.
+
+## Cursor theme: Graphite
+My favorite cursor theme is Graphite from https://github.com/vinceliuice/Graphite-cursors.
+```bash
+$ git clone https://github.com/vinceliuice/Graphite-cursors.git
+$ cd Graphite-cursors
+$ ./build.sh
+```
+Then move the dist folders under ~/.icons, and use Settings > Mouse and Touchpad in XFCE4 for setting the mouse theme.
+
+## Login Manager: LightDM
+Since XFCE4 uses by default LightDM, why not use it. To make it easier to change settings and wallpaper, install settings:
+```bash
+$ sudo apt install lightdm-gtk-greeter-settings
+```
+It appears in the XFCE4 Settings, under the System section.
+
+# Gaming on Debian 13 Trixie
+Follow https://wiki.debian.org/Steam for installing Steam on a fresh Debian install.
+
+## Nvidia drivers
+This setup is about Debian + XFCE + Nvidia. Using the DEbian guide https://wiki.debian.org/NvidiaGraphicsDrivers is pretty straightforward and reccommended.
+Here we handle the situation where we need at least 575 driver version for most recent games like Doom The Dark Ages. In my case i installed the .sh script from Nvidia official page by navigating their repos. Once installed run:
+```bash
+  $ sudo chmod +x NVIDIA-Linux-x86_64-575.64.05.sh
+  $ sudo ./NVIDIA-Linux-x86_64-575.64.05.sh
+```
+In options i used all yes and handle automatically.
+To my knowledge, the 575 nvidia driver version is the most stable for XFCE4 4.20 and Debian 13. I tried the version 580 and xfce4 struggles creating glitches and flickering with the compositor.
+
+## Games do not start from external hardisk
+For steam games choose external hard disk. Why? Because you are a linux user, and you distro hop a lot.
+We want the linux to run on smallest SSD, and the games stored on big SSD simply because if we have to reinstall linux we don't have to reinstall all the games.
+```bash
+$ lsblk -f
+```
+shows you the devices and UUID (unique identifier of your hardisks in the pc).
+
+Example we target /dev/sdc1. Assume there is a lot of stuff you don't care. You don't have to delete them, or format the disk. Just make its filesystem ext4 (all files will be lost), which is the chosen one for gaming on Linux.
+$ sudo mkfs.ext4 -L "SteamLibrary" /dev/sdc1
+
+We assume the user is called $USER=popo
+You need to build the mount moint so that it is also seen by the filemanager (like nemo, thunar, files, ...).
+The path then must be /media/popo
+```bash
+$ sudo mkdir -p /media/popo/SteamLibrary
+```
+The user must be owner of the steam disk! Otherwise steam won't recognize it as a valid storage location for installing games!
+```bash
+$ sudo chown -R popo:popo /media/popo/SteamLibrary
+```
+To make the setup persistent on boot you need to add a line in /etc/fstab
+UUID=6ab40807-b0d3-41b3-82de-e1966e8e95f3 /media/popo/SteamLibrary ext4 defaults,nofail  0  2
+Where:
+  The uuid is taken from lsblk -f
+  NOTE uid=1000 and gid=1000 is NOT USED for ext4 partitions
+
+To test the /etc/fstab before rebooting, launch
+```bash
+$ sudo mount -a
+```
+This helps not going in kernel panick when playing with /etc/fstab.
+NOTE:
+Do not use TABS in /etc/fstab, otherwise your systemd will not load, and you will have to recover

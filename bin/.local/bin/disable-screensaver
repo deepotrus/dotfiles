@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# This script disable -for real- the screensaver
+# Very useful for downloading games without being interrupted
+# by screensaver bs
+# Note: this does the job even if xfce4 ignores your screensaver preferences
+
+xset -q
+xset s off
+xset s noblank
