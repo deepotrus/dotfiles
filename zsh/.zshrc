@@ -16,7 +16,13 @@ alias n="newsboat"
 alias vivado="vivado -nolog -nojournal"
 alias vim="nvim"
 
+
 # -------------- FUNCTIONS --------------
+
+biggest() {
+  du -ah --max-depth=1 "${2:-.}" | sort -rh | head -n $(( ${1:-10} + 1 ));
+}
+
 catmd() {
   local md_file="$1"
   pandoc --webtex "$md_file" -o /tmp/temp.html

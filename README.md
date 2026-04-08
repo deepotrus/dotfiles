@@ -141,7 +141,29 @@ Since XFCE4 uses by default LightDM, why not use it. To make it easier to change
 $ sudo apt install lightdm-gtk-greeter-settings
 ```
 It appears in the XFCE4 Settings, under the System section.
-
+# Sound Debug
+## Hardware setup
+I reccommend using separately a USB microphone for input, and a headphones set as input which connects via bluetooth 5.1 on a supported chip.
+## My software choices
+I personally use pavucontrol for gui on xfce4. Then i use pulseaudio as sound service. You can find you current sound service with:
+```bash
+$ pactl info | grep "Server Name"
+```
+The status of pulseaudio is checked with:
+```bash
+$ systemctl --user status pipewire pulseaudio
+```
+Then you must make sure you have these services installed and running:
+```bash
+$ systemctl --user status pipewire-pulse wireplumber
+```
+If they are not active, i reccommend installing the packages:
+```bash
+$ sudo apt install bluetooth blueman
+$ sudo apt install libspa-0.2-bluetooth pipewire-audio wireplumber
+$ sudo apt install pulseaudio-module-bluetooth
+```
+Make sure to restart Discord after any update to refresh the thing.
 # Gaming on Debian 13 Trixie
 Follow https://wiki.debian.org/Steam for installing Steam on a fresh Debian install.
 
@@ -189,3 +211,14 @@ $ sudo mount -a
 This helps not going in kernel panick when playing with /etc/fstab.
 NOTE:
 Do not use TABS in /etc/fstab, otherwise your systemd will not load, and you will have to recover
+
+## Controllers GAMESIR Nova Lite 2
+I chose this controllers for my Linux setup because they are natively compatible, plug and play.
+Here I discuss a functioning setup with 2 of these controllers, which gave me a bit of headache when playing with one my friend together and steam not letting me.
+If you are using 2 same controllers, their MAC address is unique, thus Steam will only see ONE of these controllers. This happens because the playstation kernel driver has an explicit MAC-based deduplication check in its source code. Since GameSir hardcodes the same fake MAC on every Nova 2 unit, the driver refuses to register a second device with that address, it assumes it must be the same physical controller reconnecting, not a second one.
+### Solution
+Switching both controllers from DS4 mode to Xinput (the one of xbox) solves the problem because the playstation driver is bypassed. To force Xinput mode:
+- Unplug both controllers
+- Hold Home + X while plugging each one back in (this forces XInput mode)
+- Relaunch Steam if needed
+At the end check Steam > Settings > Controller, and see if 2 gamepads xpox are found.
