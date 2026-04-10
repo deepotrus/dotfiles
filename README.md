@@ -38,6 +38,7 @@ Once the gui works, for building themes there are some libraries needed, which f
 ```bash
 $ sudo apt install gettext
 $ sudo apt install sassc
+$ sudo apt install meson ninja-build
 $ sudo apt install ... a lot of other stuff
 ```
 Once all dependencies are installed, cd into themix-gui and run the gui.sh script which will open a gui where you can customize you themes based on pywal colors!
