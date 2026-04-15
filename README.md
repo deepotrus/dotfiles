@@ -38,6 +38,7 @@ Once the gui works, for building themes there are some libraries needed, which f
 ```bash
 $ sudo apt install gettext
 $ sudo apt install sassc
+$ sudo apt install meson ninja-build
 $ sudo apt install ... a lot of other stuff
 ```
 Once all dependencies are installed, cd into themix-gui and run the gui.sh script which will open a gui where you can customize you themes based on pywal colors!
@@ -122,7 +123,7 @@ Then open tmux and insert command prefix + I to install plugins!
 ## Fonts
 I personally use fonts downloaded from https://www.nerdfonts.com/font-downloads. In particular JetBrainsMono Nerd Font and Symbols Nerd Font. Download them, extract and put them inside ~/.local/share/fonts.
 ```bash
-$ fs-cache -vr
+$ fc-cache -vr
 ```
 Now you have symbols with kitty terminal symbols Ctrl+Shift+U, and nice font on Rofi launcher. These fonts can be used e.g. on Polybar. For kitty terminal it is needed to map the symbols as shown in the kitty.conf file.
 
