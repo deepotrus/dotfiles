@@ -5,6 +5,6 @@
 # by screensaver bs
 # Note: this does the job even if xfce4 ignores your screensaver preferences
 
-xset -q
 xset s off
 xset s noblank
+xset -dpms

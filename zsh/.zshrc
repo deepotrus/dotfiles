@@ -15,7 +15,8 @@ alias ytaudio="yt-dlp -x --no-playlist"
 alias n="newsboat"
 alias vivado="vivado -nolog -nojournal"
 alias vim="nvim"
-
+alias pwdc="pwd | xclip -selection clipboard"
+alias o="xdg-open ."
 
 # -------------- FUNCTIONS --------------
 
