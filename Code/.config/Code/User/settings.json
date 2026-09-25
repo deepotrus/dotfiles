@@ -7,5 +7,6 @@
     "window.titleBarStyle": "native",
     "window.customTitleBarVisibility": "never",
     "window.menuStyle": "native",
-    "claudeCode.preferredLocation": "panel"
+    "claudeCode.preferredLocation": "panel",
+    "claudeCode.hideOnboarding": true
 }
