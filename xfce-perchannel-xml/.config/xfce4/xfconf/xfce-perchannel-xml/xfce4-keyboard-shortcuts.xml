@@ -66,7 +66,7 @@
       <property name="&lt;Alt&gt;Tab" type="string" value="skippy-xd --switch --next"/>
       <property name="&lt;Super&gt;Tab" type="string" value="skippy-xd --expose"/>
       <property name="F12" type="string" value="skippy-xd --paging"/>
-      <property name="&lt;Super&gt;e" type="string" value="nemo"/>
+      <property name="&lt;Super&gt;e" type="string" value="thunar"/>
     </property>
   </property>
   <property name="xfwm4" type="empty">
