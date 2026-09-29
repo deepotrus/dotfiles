@@ -1,0 +1,4 @@
+[mgr]
+# "custom" keeps the normal alphabetical order, but lets the pins plugin lift pinned entries to the top.
+sort_by       = "custom"
+sort_fallback = "alphabetical"

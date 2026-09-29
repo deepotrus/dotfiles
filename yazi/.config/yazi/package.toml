@@ -1,0 +1,12 @@
+[[plugin.deps]]
+use = "WhoSowSee/whoosh"
+rev = "43f3202"
+hash = "da14dfe482886e756150ae4f5c2bb23"
+
+[[plugin.deps]]
+use = "h-hg/yamb"
+rev = "971b858"
+hash = "da4534745930e827a44d4585bbd965eb"
+
+[flavor]
+deps = []

@@ -65,6 +65,9 @@ xfconf-query -c xsettings -p /Net/IconThemeName -s pywal-icons/icons-$THEME_ID
 wal -c
 wal "${WAL_FLAGS[@]}" -i $wallpaper
 
+# Update pdf reader
+zathura-pywal -a 0.8
+
 # Change telegram pywal theme
 walogram
 
