@@ -145,17 +145,17 @@ backgroundTinting = true
 # option = windowTitle to display window title
 [label]
 show = false
-option = windowClass
+option = windowTitle
 offsetX = 0
-offsetY = -5
+offsetY = 6
 width = 0.8
-border = #0e0e0e
-background = #111111
-backgroundHighlight = #999999
-opacity = 196
-text = white
-textOutline = #0e0e0e
-font = fixed-11:weight=bold
+border = #1a1a1a
+background = #1a1a1a
+backgroundHighlight = #D36E1E
+opacity = 150
+text = #f0f0f0
+textOutline = #000000
+font = DejaVu Sans-10:weight=bold
 
 [bindings]
 

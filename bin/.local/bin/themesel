@@ -71,6 +71,9 @@ zathura-pywal -a 0.8
 # Change telegram pywal theme
 walogram
 
+# Update skippy-xd hover label colour to the new pywal accent (color2)
+skippy-accent
+
 # ----- APPENDIX -----
 # Steps used to build this utility
 #xfconf-query --list

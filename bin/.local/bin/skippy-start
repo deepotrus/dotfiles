@@ -80,4 +80,12 @@ if pgrep -f "$DAEMON_PATTERN" > /dev/null; then
 fi
 # Clients stuck without a daemon would otherwise stay around forever.
 pkill -f '^skippy-xd --(expose|switch|paging)' || true
-exec skippy-xd --start-daemon
+
+# Keep the daemon output, so a crash leaves a trace (exit code is logged too).
+LOG="${XDG_CACHE_HOME:-$HOME/.cache}/skippy-xd.log"
+mkdir -p "$(dirname "$LOG")"
+echo "=== $(date '+%F %T') skippy-start: profile '$PROFILE'" >> "$LOG"
+skippy-xd --start-daemon >> "$LOG" 2>&1
+RC=$?
+echo "=== $(date '+%F %T') skippy-xd daemon exited, rc=$RC" >> "$LOG"
+exit $RC

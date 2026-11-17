@@ -88,6 +88,10 @@ $ skippy-start            # auto: 2+ monitors -> work, otherwise home
 $ skippy-start home       # force a profile
 $ echo home > ~/.config/skippy-xd/profile   # persistent per-machine override (untracked)
 ```
+The daemon log is `~/.cache/skippy-xd.log` (includes the exit code if it dies).
+`themesel` runs `skippy-accent`, which sets the hovered-label colour in both profiles to the
+pywal accent (color2) and reloads skippy; `skippy-accent '#RRGGBB'` sets a colour by hand.
+
 Autostart entry (`~/.config/autostart/activity switcher.desktop`):
 `Exec=sh -c "$HOME/.local/bin/skippy-start"`
 There are more infos on the official page on how to use skippy-xd!
