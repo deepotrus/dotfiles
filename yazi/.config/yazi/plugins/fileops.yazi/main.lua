@@ -1,6 +1,7 @@
 --- @since 25.5.31
 -- fileops: a small menu of operations on the hovered file (or the selection).
--- Compress to .tar / .tar.gz / .zip, extract an archive, and show file properties (size, md5, sha256, ...).
+-- Compress to .tar / .tar.gz / .zip, extract an archive, show file properties (size, md5, sha256, ...)
+-- and compare two files by checksum.
 
 local M = {}
 
@@ -10,10 +11,12 @@ local MENU = {
 	{ on = "z", desc = "Compress to .zip", run = "zip" },
 	{ on = "x", desc = "Extract archive", run = "extract" },
 	{ on = "p", desc = "Properties / checksums", run = "props" },
+	{ on = "r", desc = "Mark as compare reference", run = "mark_ref" },
+	{ on = "c", desc = "Compare (reference or 2 selected)", run = "compare" },
 }
 
--- Hovered item, selected items and cwd, as plain strings.
-local get_state = ya.sync(function()
+-- Hovered item, selected items, cwd and compare reference, as plain strings.
+local get_state = ya.sync(function(state)
 	local tab = cx.active
 	local selected = {}
 	for _, f in pairs(tab.selected) do
@@ -24,8 +27,12 @@ local get_state = ya.sync(function()
 		cwd = tostring(tab.current.cwd),
 		hovered = h and tostring(h.url) or nil,
 		selected = selected,
+		ref = state.ref,
 	}
 end)
+
+-- The compare reference lives in the plugin state, so it survives tab switches and folder changes.
+local set_ref = ya.sync(function(state, path) state.ref = path end)
 
 local function notify(msg, level)
 	ya.notify { title = "File ops", content = msg, timeout = level == "error" and 8 or 3, level = level or "info" }
@@ -272,6 +279,71 @@ end
 
 local function first_field(s) return s and s:match("^(%S+)") end
 
+local ESC = "\27"
+local function bold(t) return ESC .. "[1m" .. t .. ESC .. "[0m" end
+local function color(code, t) return ESC .. "[" .. code .. "m" .. t .. ESC .. "[0m" end
+local function row(label, value) return string.format("%s %s", color("1;34", string.format("%-12s", label)), value) end
+
+-- Prints the screen, then waits until one of $KEYS is pressed and writes it to stderr.
+-- Other keys are ignored, so stray vim habits (ZQ, ZZ, :q) don't leave the screen or reach yazi.
+local SCREEN_SCRIPT = [[
+printf '\033[H\033[2J%s\n\n%s\n%s' "$BODY" "$FOOTER" "$STATUS"
+while :; do
+	IFS= read -rsn1 k < /dev/tty || exit 0
+	if [ -n "$k" ]; then
+		case "$KEYS" in *"$k"*) printf '%s' "$k" >&2; exit 0 ;; esac
+	fi
+done
+]]
+
+-- Shows `lines` as plain terminal text with the yazi UI hidden. Hiding the UI also turns off
+-- yazi's mouse capture, so the mouse belongs to tmux again: drag-select or double-click copies.
+-- `keys` is a list of { key, label, value }: pressing a key copies its value (ya.clipboard:
+-- OSC 52 + xclip) and keeps the screen open. Only `q` closes it.
+local function show_screen(lines, keys)
+	local hints, by_key, accepted = {}, {}, "q"
+	for _, k in ipairs(keys) do
+		if k.value and k.value ~= "?" then
+			by_key[k.key] = k
+			accepted = accepted .. k.key
+			hints[#hints + 1] = color("1;33", k.key) .. " copy " .. k.label
+		end
+	end
+	hints[#hints + 1] = color("1;33", "q") .. " close"
+	local footer = table.concat(hints, "  ") .. "  " .. color("2", "(mouse selection also copies in tmux)")
+
+	local permit = ui.hide()
+	local status, failure = "", nil
+	while true do
+		local child, err = Command("bash")
+			:arg({ "-c", SCREEN_SCRIPT })
+			:env("BODY", table.concat(lines, "\n"))
+			:env("FOOTER", footer)
+			:env("STATUS", status)
+			:env("KEYS", accepted)
+			:stdin(Command.INHERIT)
+			:stdout(Command.INHERIT)
+			:stderr(Command.PIPED)
+			:spawn()
+		if not child then
+			failure = "Failed to start bash: " .. tostring(err)
+			break
+		end
+		local out = child:wait_with_output()
+		local pick = by_key[out and out.stderr or ""]
+		if not pick then
+			break -- q, or bash ended without a key
+		end
+		ya.clipboard(pick.value)
+		status = color("32", "Copied " .. pick.label .. ": " .. pick.value)
+	end
+	permit:drop()
+
+	if failure then
+		notify(failure, "error")
+	end
+end
+
 local function props(st)
 	local path = st.hovered
 	if not path then
@@ -325,19 +397,101 @@ local function props(st)
 		rows[#rows + 1] = { "SHA256", first_field(run("sha256sum", { "--", path })) or "?" }
 	end
 
-	local lines = {}
+	local lines = { bold("Properties: " .. basename(path)), "" }
+	local values = { path = path, name = basename(path) }
 	for _, r in ipairs(rows) do
-		lines[#lines + 1] = ui.Line {
-			ui.Span(string.format(" %-12s", r[1])):style(ui.Style():fg("blue"):bold()),
-			ui.Span(r[2]),
-		}:align(ui.Align.LEFT)
+		lines[#lines + 1] = row(r[1], r[2])
+		values[r[1]] = r[2]
+	end
+	show_screen(lines, {
+		{ key = "m", label = "MD5", value = values.MD5 },
+		{ key = "s", label = "SHA256", value = values.SHA256 },
+		{ key = "p", label = "path", value = values.path },
+		{ key = "n", label = "name", value = values.name },
+	})
+end
+
+----------------------------------------------------------------------------
+-- Compare
+----------------------------------------------------------------------------
+
+local function mark_ref(st)
+	if not st.hovered then
+		return notify("Nothing hovered", "warn")
+	end
+	if st.ref == st.hovered then
+		set_ref(nil)
+		return notify("Compare reference cleared")
+	end
+	set_ref(st.hovered)
+	notify("Compare reference: " .. tilde(st.hovered) .. "\nNow hover another file and press e c")
+end
+
+-- Size, mtime and checksums of a regular file (symlinks are followed).
+local function file_info(path)
+	local cha = fs.stat(Url(path), true)
+	if not cha then
+		return nil, "No longer exists: " .. path
+	end
+	if cha.is_dir then
+		return nil, "Not a file: " .. path
+	end
+	local mtime = run("stat", { "-L", "-c", "%y", "--", path }) or "?"
+	return {
+		path = path,
+		size = cha.len,
+		mtime = (mtime:gsub("%.%d+", "")),
+		md5 = first_field(run("md5sum", { "--", path })) or "?",
+		sha = first_field(run("sha256sum", { "--", path })) or "?",
+	}
+end
+
+local function compare(st)
+	local a, b
+	if #st.selected == 2 then
+		a, b = st.selected[1], st.selected[2]
+	elseif #st.selected > 0 then
+		return notify("Select exactly 2 files to compare (" .. #st.selected .. " selected)", "warn")
+	elseif not st.ref then
+		return notify("No reference yet: press e r on the first file, then e c on the second.\nOr select exactly 2 files.", "warn")
+	elseif not st.hovered or st.hovered == st.ref then
+		return notify("Hover a different file than the reference: " .. tilde(st.ref), "warn")
+	else
+		a, b = st.ref, st.hovered
 	end
 
-	ya.confirm {
-		pos = { "center", w = 100, h = #lines + 6 },
-		title = ui.Line("Properties: " .. basename(path)),
-		body = ui.Text(lines):wrap(ui.Wrap.YES),
-	}
+	local fa, ea = file_info(a)
+	local fb, eb = fa and file_info(b)
+	if not fa or not fb then
+		return notify(ea or eb, "error")
+	end
+
+	local verdict
+	if fa.sha == "?" or fb.sha == "?" then
+		verdict = color("1;33", "UNKNOWN") .. " (could not read one of the files)"
+	elseif fa.size == fb.size and fa.sha == fb.sha then
+		verdict = color("1;32", "IDENTICAL") .. " (same size, MD5 and SHA256)"
+	elseif fa.size ~= fb.size then
+		verdict = color("1;31", "DIFFERENT") .. string.format(" (sizes differ by %d bytes)", fb.size - fa.size)
+	else
+		verdict = color("1;31", "DIFFERENT") .. " (same size, different content)"
+	end
+
+	local lines = { bold("Compare"), "" }
+	for i, f in ipairs { fa, fb } do
+		lines[#lines + 1] = color("1;35", tostring(i)) .. " " .. row("Path", f.path)
+		lines[#lines + 1] = "  " .. row("Size", string.format("%s (%d bytes)", human(f.size), f.size))
+		lines[#lines + 1] = "  " .. row("Modified", f.mtime)
+		lines[#lines + 1] = "  " .. row("MD5", f.md5)
+		lines[#lines + 1] = "  " .. row("SHA256", f.sha)
+		lines[#lines + 1] = ""
+	end
+	lines[#lines + 1] = row("Result", verdict)
+
+	show_screen(lines, {
+		{ key = "1", label = "MD5 of 1", value = fa.md5 },
+		{ key = "2", label = "MD5 of 2", value = fb.md5 },
+	})
 end
 
 ----------------------------------------------------------------------------
@@ -363,6 +517,10 @@ function M:entry(job)
 		extract(st)
 	elseif action == "props" then
 		props(st)
+	elseif action == "mark_ref" then
+		mark_ref(st)
+	elseif action == "compare" then
+		compare(st)
 	else
 		notify("Unknown action: " .. action, "error")
 	end
