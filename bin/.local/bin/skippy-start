@@ -1,0 +1,83 @@
+#!/bin/bash
+# Start (or restart) the skippy-xd daemon with the profile for this machine.
+#
+# Profiles live in ~/.config/skippy-xd/ (stowed from dotfiles/skippy-xd):
+#   skippy-xd-work.rc   work setup, 2 monitors
+#   skippy-xd-home.rc   home setup, single ultrawide
+#
+# Profile selection:
+#   1. argument:   skippy-start work|home
+#   2. override:   ~/.config/skippy-xd/profile containing "work" or "home" (untracked)
+#   3. automatic:  2+ active monitors -> work, otherwise -> home
+#
+# skippy-xd reads ~/.config/skippy-xd/skippy-xd.rc, so that file is turned into a
+# symlink to the selected profile. A real (non-symlink) file there is backed up once
+# to skippy-xd.rc.bak before being replaced.
+#
+# Options:
+#   -n, --dry-run   only print the selected profile, change nothing
+
+set -euo pipefail
+
+CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/skippy-xd"
+RC="$CONF_DIR/skippy-xd.rc"
+OVERRIDE="$CONF_DIR/profile"
+
+DRY_RUN=0
+PROFILE=""
+
+for arg in "$@"; do
+    case "$arg" in
+        -n|--dry-run) DRY_RUN=1 ;;
+        work|home)    PROFILE="$arg" ;;
+        *) echo "usage: skippy-start [-n|--dry-run] [work|home]" >&2; exit 2 ;;
+    esac
+done
+
+if [ -z "$PROFILE" ] && [ -f "$OVERRIDE" ]; then
+    PROFILE="$(tr -d '[:space:]' < "$OVERRIDE")"
+    SOURCE="override file $OVERRIDE"
+elif [ -n "$PROFILE" ]; then
+    SOURCE="argument"
+else
+    MONITORS="$(xrandr --listactivemonitors | sed -n 's/^Monitors: *//p')"
+    if [ "${MONITORS:-1}" -ge 2 ]; then
+        PROFILE="work"
+    else
+        PROFILE="home"
+    fi
+    SOURCE="${MONITORS:-?} active monitor(s)"
+fi
+
+TARGET="skippy-xd-$PROFILE.rc"
+if [ ! -e "$CONF_DIR/$TARGET" ]; then
+    echo "skippy-start: profile '$PROFILE' not found: $CONF_DIR/$TARGET" >&2
+    exit 1
+fi
+
+echo "skippy-start: profile '$PROFILE' (from $SOURCE)"
+if [ "$DRY_RUN" -eq 1 ]; then
+    exit 0
+fi
+
+if [ -e "$RC" ] && [ ! -L "$RC" ]; then
+    if [ -e "$RC.bak" ]; then
+        echo "skippy-start: $RC is a real file and $RC.bak already exists, not overwriting" >&2
+        exit 1
+    fi
+    mv "$RC" "$RC.bak"
+    echo "skippy-start: backed up existing config to $RC.bak"
+fi
+ln -sfn "$TARGET" "$RC"
+
+# Match only the daemon: hotkey clients (--expose/--switch/--paging) are also
+# called skippy-xd and hang forever when no daemon is listening.
+DAEMON_PATTERN='^skippy-xd --start-daemon'
+if pgrep -f "$DAEMON_PATTERN" > /dev/null; then
+    timeout 3 skippy-xd --stop-daemon || true
+    sleep 0.5
+    pkill -f "$DAEMON_PATTERN" || true
+fi
+# Clients stuck without a daemon would otherwise stay around forever.
+pkill -f '^skippy-xd --(expose|switch|paging)' || true
+exec skippy-xd --start-daemon

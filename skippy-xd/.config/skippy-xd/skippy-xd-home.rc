@@ -1,5 +1,7 @@
 # Skippy-xd config file
 #
+# HOME profile (single ultrawide). Selected by ~/.local/bin/skippy-start.
+#
 # Skippy-xd searches for this file in these locations,
 #    According to this order:
 # 1. $XDG_CONFIG_HOME/skippy-xd/skippy-xd.rc
@@ -41,7 +43,7 @@ clientList = _NET_CLIENT_LIST
 
 # When compositors such as picom are not used
 # Turn on pseudo-transparency
-pseudoTrans = true
+pseudoTrans = false
 
 [multimonitor]
 
@@ -80,7 +82,7 @@ allowUpscale = false
 
 # Animation duration in ms
 # Set = 0 to switch off animations
-animationDuration = 200
+animationDuration = 0
 
 # Animation refresh rate in fps
 animationRefresh = 60
@@ -120,7 +122,7 @@ iconSize = 48
 # Currently highlighted window
 [highlight]
 tint = #FFFFFF
-tintOpacity = 64
+tintOpacity = 0
 
 # Highlighted in multi-select mode
 [multiselect]

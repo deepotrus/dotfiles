@@ -1,0 +1,79 @@
+#!/bin/bash
+# Restart picom safely after a config change.
+#
+# Do not reload with SIGUSR1: picom 13 re-initialises while its old session
+# still owns the compositor selection, logs "Another composite manager is
+# already running" and exits, leaving the desktop without a compositor.
+#
+# Steps:
+#   1. check the config with "picom --diagnostics"; if it is broken, stop here
+#      and leave the running picom untouched
+#   2. stop the running picom and wait until it has exited (SIGKILL after 3 s)
+#   3. start picom detached, logging to $LOG
+#   4. confirm it is still running after 2 s
+#
+# Usage:
+#   picom-restart            check, then restart
+#   picom-restart --check    only check the config
+#
+# Environment:
+#   PICOM_CONFIG   config file (default: ~/.config/picom/picom.conf)
+
+set -uo pipefail
+
+CONFIG="${PICOM_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/picom/picom.conf}"
+LOG="${XDG_CACHE_HOME:-$HOME/.cache}/picom.log"
+
+CHECK_ONLY=0
+case "${1:-}" in
+    "")       ;;
+    --check)  CHECK_ONLY=1 ;;
+    *) echo "usage: picom-restart [--check]" >&2; exit 2 ;;
+esac
+
+if [ ! -f "$CONFIG" ]; then
+    echo "picom-restart: config not found: $CONFIG" >&2
+    exit 1
+fi
+
+# 1. Config check. Run from the config directory so relative @include works.
+CHECK_OUT="$(cd "$(dirname "$CONFIG")" && timeout 5 picom --config "$CONFIG" --diagnostics 2>&1)"
+CHECK_RC=$?
+if [ $CHECK_RC -ne 0 ]; then
+    echo "picom-restart: config check FAILED (rc=$CHECK_RC), picom not restarted:" >&2
+    echo "$CHECK_OUT" | grep -E 'ERROR|WARN' | grep -v 'egl backend' >&2
+    exit 1
+fi
+echo "picom-restart: config OK ($CONFIG)"
+if [ $CHECK_ONLY -eq 1 ]; then
+    exit 0
+fi
+
+# 2. Stop the running instance and wait until it is gone.
+if pgrep -x picom > /dev/null; then
+    pkill -x picom
+    for _ in $(seq 1 30); do
+        pgrep -x picom > /dev/null || break
+        sleep 0.1
+    done
+    if pgrep -x picom > /dev/null; then
+        echo "picom-restart: picom did not stop, sending SIGKILL"
+        pkill -KILL -x picom
+        sleep 0.3
+    fi
+fi
+
+# 3. Start detached from this terminal.
+mkdir -p "$(dirname "$LOG")"
+cd "$HOME" || exit 1
+setsid picom --config "$CONFIG" > "$LOG" 2>&1 < /dev/null &
+
+# 4. Confirm it stayed up.
+sleep 2
+PID="$(pgrep -x picom)"
+if [ -z "$PID" ]; then
+    echo "picom-restart: picom exited right after start, log $LOG:" >&2
+    cat "$LOG" >&2
+    exit 1
+fi
+echo "picom-restart: picom running (pid $PID), log $LOG"

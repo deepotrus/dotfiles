@@ -60,6 +60,10 @@ $ sudo apt install picom
 $ cd dotfiles
 $ stow picom
 ```
+After editing the picom config, restart it with `picom-restart` (from `bin/`): it checks the
+config first, leaves picom running if the config is broken, and avoids `SIGUSR1` reloads, which
+make picom 13 exit with "Another composite manager is already running". `picom-restart --check`
+only checks the config. Log: `~/.cache/picom.log`.
 Then get skippy from here:
 ```bash
 $ git clone https://github.com/felixfung/skippy-xd.git
@@ -74,8 +78,18 @@ Then cd into the skippy-xd repo and
 ```bash
 $ make
 $ sudo make install
-$ skippy-xd --start-daemon
 ```
+There are two skippy-xd profiles: `skippy-xd-work.rc` (2 monitors) and `skippy-xd-home.rc`
+(single ultrawide). `skippy-start` picks one, links it as `~/.config/skippy-xd/skippy-xd.rc`
+(backing up a real file there to `skippy-xd.rc.bak`) and (re)starts the daemon:
+```bash
+$ stow skippy-xd bin
+$ skippy-start            # auto: 2+ monitors -> work, otherwise home
+$ skippy-start home       # force a profile
+$ echo home > ~/.config/skippy-xd/profile   # persistent per-machine override (untracked)
+```
+Autostart entry (`~/.config/autostart/activity switcher.desktop`):
+`Exec=sh -c "$HOME/.local/bin/skippy-start"`
 There are more infos on the official page on how to use skippy-xd!
 
 ### Pywalfox on Debian 13
