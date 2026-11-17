@@ -32,3 +32,8 @@ desc = "Pin/unpin hovered item to the top"
 on   = [ ",", "c" ]
 run  = "sort custom --reverse=no"
 desc = "Sort with pins on top (default)"
+
+[[mgr.prepend_keymap]]
+on   = "e"
+run  = "plugin fileops"
+desc = "File operations menu (compress, extract, properties)"

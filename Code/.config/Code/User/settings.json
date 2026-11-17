@@ -1,4 +1,6 @@
 {
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
     "workbench.colorTheme": "Wal Bordered",
     "terminal.integrated.inheritEnv": false,
     "clangd.path": "/home/popo/.config/VSCodium/User/globalStorage/llvm-vs-code-extensions.vscode-clangd/install/20.1.8/clangd_20.1.8/bin/clangd",

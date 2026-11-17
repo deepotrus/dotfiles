@@ -1,6 +1,6 @@
 # Yazi config
 
-Personal yazi config with two self-written plugins: **fzfmarks** (bookmarks) and **pins** (pin items to the top of a folder).
+Personal yazi config with three self-written plugins: **fzfmarks** (bookmarks), **pins** (pin items to the top of a folder) and **fileops** (compress / extract / properties menu).
 
 ## Environment
 
@@ -21,6 +21,7 @@ Personal yazi config with two self-written plugins: **fzfmarks** (bookmarks) and
 | `init.lua` | `require("pins"):setup()` |
 | `plugins/fzfmarks.yazi/main.lua` | Bookmarks plugin |
 | `plugins/pins.yazi/main.lua` | Pins plugin |
+| `plugins/fileops.yazi/main.lua` | File operations menu |
 | `package.toml` | Leftover from yamb/whoosh experiments. Not used; the listed packages aren't installed |
 
 ### Data files (not in this folder)
@@ -43,6 +44,7 @@ Both plugins create the folder with `fs.create("dir_all", ...)` on first use, so
 | `b p` | Pins: toggle pin on hovered item |
 | `, c` | Back to custom sort (pins on top) after using another sort mode |
 | `t d` | Close current tab (built-in `close`; quits on the last tab) |
+| `e` | File operations menu, then `t` .tar.gz, `T` .tar, `z` .zip, `x` extract, `p` properties |
 
 ## fzfmarks (bookmarks)
 
@@ -69,6 +71,16 @@ How the plugin works:
 - The 📌 marker comes from `Entity:children_add(fn, 4500)`, placed after the file name.
 - Toggling rewrites `pins.txt` and sends rank `-1`, or `0` for an unpinned item.
 - Known limitation: pins are stored by path, so renaming or moving a pinned item drops its pin.
+
+## fileops
+
+`e` opens a which-key style menu (`ya.which`). Each entry can also be bound directly, e.g. `run = "plugin fileops zip"` (actions: `tar_gz`, `tar`, `zip`, `extract`, `props`).
+
+- **Compress** (`t`/`T`/`z`) works on the selection, or the hovered item if nothing is selected. Asks for the archive name (default: item name, or folder name for several items) and creates it in the current folder. Members are stored relative to their parent, so all selected items must be in one folder. Asks before overwriting.
+- **Extract** (`x`) supports `.tar[.gz|.xz|.bz2|.zst]`, `.tgz/.txz/.tbz2` (via `tar -xf`, compression auto-detected) and `.zip/.jar` (via `unzip`). It extracts into a hidden temp folder next to the archive; a single top-level entry is moved up as is (no `foo/foo/` nesting), several entries go into a folder named after the archive. Never overwrites: existing names get a `_1`, `_2`, ... suffix. A failed extraction that produced nothing leaves nothing behind.
+- **Properties** (`p`) on the hovered item: path, type (`stat` + `file -b`), size (bytes and KiB/MiB; `du -sb` and recursive item count for folders), permissions, owner, mtime, link target, and MD5 + SHA256 for files. Shown in a `ya.confirm` popup; close it with `Esc`, `y` or `n`. Each line is left-aligned with `ui.Line:align`, because the confirm body paragraph itself is centered.
+- `cx.active.selected` yields file objects in this build, so the plugin uses `f.url`.
+- Tested headless by driving yazi in a pty and rendering the screen with `pyte`.
 
 ## If something breaks
 

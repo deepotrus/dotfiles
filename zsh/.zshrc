@@ -17,6 +17,7 @@ alias vivado="vivado -nolog -nojournal"
 alias vim="nvim"
 alias pwdc="pwd | xclip -selection clipboard"
 alias o="xdg-open ."
+alias opia="ssh popo@techdystopia.xyz"
 
 # -------------- FUNCTIONS --------------
 
@@ -28,6 +29,11 @@ catmd() {
   local md_file="$1"
   pandoc --webtex "$md_file" -o /tmp/temp.html
   firefox /tmp/temp.html
+}
+
+launch_vivado() {
+  . /tools/Xilinx/Vivado/2022.2/settings64.sh
+  vivado -nolog -nojournal
 }
 
 # by choosing only the directory it will automatically chose a random image
@@ -48,3 +54,6 @@ HISTORY_IGNORE="(ls|bg|fg|cd|exit|clear|h|htop|zsh)"
 plugins=(git)
 source $ZSH/oh-my-zsh.sh
 export PATH="$HOME/vcpkg:$PATH"
+export FINN_XILINX_PATH=/tools/Xilinx
+export FINN_XILINX_VERSION=2022.2
+export FINN_DOCKER_EXTRA="-e PYTEST_ADDOPTS=-pno:anyio"
