@@ -96,6 +96,23 @@ Autostart entry (`~/.config/autostart/activity switcher.desktop`):
 `Exec=sh -c "$HOME/.local/bin/skippy-start"`
 There are more infos on the official page on how to use skippy-xd!
 
+### Keyboard window management: xfwmctrl
+`xfwmctrl` (in `bin/`, needs `wmctrl`, `xprop`, `xwininfo`, `xrandr`) moves and resizes the
+active window in 128 px steps. Bound in `xfce4-keyboard-shortcuts.xml` (the xfconf folder is
+stowed, so shortcuts set in the GUI or with `xfconf-query` land directly in this repo):
+
+| Keys | Command |
+|---|---|
+| Alt+Super+Arrow | `xfwmctrl move left/right/up/down` |
+| Ctrl+Super+Right / Left | `xfwmctrl resize grow-h / shrink-h` |
+| Ctrl+Super+Down / Up | `xfwmctrl resize grow-v / shrink-v` |
+| Super+C | `xfwmctrl center` (centre on its monitor, keep size) |
+| Super+N | `xfwmctrl monitor next` (next monitor left to right, wraps; keeps relative position, size and maximized state) |
+
+`xfwmctrl info` prints the properties of a clicked window. `XFWMCTRL_STEP=64` or a third
+argument (`xfwmctrl move left 32`) changes the step. No per-application corrections are needed:
+every request passes an explicit gravity to xfwm4 (see the comment at the top of the script).
+
 ### Pywalfox on Debian 13
 So, on debian it is a little bit harder, to make it easier you install pywalfox via python pip. But, the stable release has relative path which creates issue for Firefox to find the executable during runtime. So instead of running pip install pywalfox you do:
 ```bash

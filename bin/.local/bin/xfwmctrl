@@ -1,0 +1,338 @@
+#!/bin/bash
+# xfwmctrl - keyboard window management for xfwm4 (move / resize in steps)
+#
+# Usage:
+#   xfwmctrl [-w WINDOW_ID] move   left|right|up|down              [PIXELS]
+#   xfwmctrl [-w WINDOW_ID] resize grow-h|shrink-h|grow-v|shrink-v  [PIXELS]
+#   xfwmctrl [-w WINDOW_ID] center centre the window on its monitor, keep size
+#   xfwmctrl [-w WINDOW_ID] monitor next|prev  send the window to the next or
+#                           previous monitor (left to right, wrapping), keeping
+#                           its relative position, size and maximized state
+#   xfwmctrl info           click a window and print its properties
+#
+#   -w WINDOW_ID   act on this window instead of the active one
+#   PIXELS         step size, default $XFWMCTRL_STEP or 128
+#
+# Why no per-application corrections:
+#   "wmctrl -e 0,..." (gravity 0) makes xfwm4 use each application's own
+#   WM_NORMAL_HINTS gravity, so the same request lands in different places:
+#   kitty (Static) drifts by one frame width, GTK/xterm (NorthWest) by two.
+#   Here every request states its gravity explicitly:
+#     move:    gravity 10 (Static) + the client's real position -> exact
+#     resize:  x,y = -1 (unchanged), only width/height are sent
+#   Measured drift with this method: 0 px for kitty, xterm, mate-calc, mousepad.
+#
+# Limits:
+#   - windows are kept inside the screen (the frame cannot leave the root
+#     window), but can still be moved across monitors
+#   - resize keeps a minimum client size of MIN_W x MIN_H
+#   - maximized windows are un-maximized first; fullscreen windows are ignored
+#   - center uses the monitor that contains the centre of the window, its full
+#     area (panels are not subtracted); a window larger than the monitor is
+#     aligned to the monitor's top-left corner
+
+set -uo pipefail
+
+STEP="${XFWMCTRL_STEP:-128}"
+MIN_W=200
+MIN_H=120
+
+die() { echo "xfwmctrl: $*" >&2; exit 1; }
+
+usage() {
+    sed -n '/^# Usage:/,/^#   PIXELS/p' "$0" | sed 's/^# \{0,1\}//'
+    exit 2
+}
+
+# ---------------------------------------------------------------- helpers ---
+
+active_window() {
+    local id
+    # output: "_NET_ACTIVE_WINDOW(WINDOW): window id # 0x4200012, 0x0"
+    id=$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}' | tr -d ',')
+    [ -n "$id" ] && [ "$((id))" -ne 0 ] || return 1
+    printf '0x%08x\n' "$id"
+}
+
+# Client (inner) absolute position and size: X Y W H
+client_geometry() {
+    xwininfo -id "$1" | awk '
+        /Absolute upper-left X/ {x = $NF}
+        /Absolute upper-left Y/ {y = $NF}
+        /^ *Width:/             {w = $NF}
+        /^ *Height:/            {h = $NF}
+        END {print x, y, w, h}'
+}
+
+# Decoration sizes: LEFT RIGHT TOP BOTTOM (0 0 0 0 if undecorated)
+frame_extents() {
+    local ext
+    ext=$(xprop -id "$1" _NET_FRAME_EXTENTS 2>/dev/null | awk -F'= ' 'NF > 1 {print $2}' | tr -d ',')
+    echo "${ext:-0 0 0 0}"
+}
+
+window_state() {
+    xprop -id "$1" _NET_WM_STATE 2>/dev/null
+}
+
+window_type() {
+    xprop -id "$1" _NET_WM_WINDOW_TYPE 2>/dev/null
+}
+
+root_size() {
+    xwininfo -root | awk '/^ *Width:/ {w = $NF} /^ *Height:/ {h = $NF} END {print w, h}'
+}
+
+# Un-maximize and wait (max 0.5 s) until xfwm4 has applied it
+unmaximize() {
+    local id=$1 i
+    window_state "$id" | grep -q '_NET_WM_STATE_MAXIMIZED' || return 0
+    wmctrl -ir "$id" -b remove,maximized_vert,maximized_horz
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+        window_state "$id" | grep -q '_NET_WM_STATE_MAXIMIZED' || break
+        sleep 0.05
+    done
+    sleep 0.05
+}
+
+# Common checks before moving/resizing
+prepare_window() {
+    local id=$1
+    xwininfo -id "$id" > /dev/null 2>&1 || die "window $id does not exist"
+    if window_type "$id" | grep -qE '_NET_WM_WINDOW_TYPE_(DESKTOP|DOCK)'; then
+        die "window $id is a desktop/panel, ignored"
+    fi
+    if window_state "$id" | grep -q '_NET_WM_STATE_FULLSCREEN'; then
+        die "window $id is fullscreen, ignored"
+    fi
+    unmaximize "$id"
+}
+
+# Active monitors, one per line, left to right: MX MY MW MH
+# xrandr line: " 0: +*DP-0 1920/598x1080/336+0+0  DP-0"
+monitors() {
+    xrandr --listactivemonitors | awk '
+        NR > 1 {
+            split($3, a, /[\/x+]/)          # a: W, mmW, H, mmH, X, Y
+            print a[5], a[6], a[1], a[3]
+        }' | sort -n -k1,1 -k2,2
+}
+
+# Index (0-based, in monitors() order) of the monitor containing point PX,PY;
+# 0 if the point is on no monitor
+monitor_index_at() {
+    local px=$1 py=$2
+    monitors | awk -v px="$px" -v py="$py" '
+        { if (px >= $1 && px < $1 + $3 && py >= $2 && py < $2 + $4) { print NR - 1; found = 1; exit } }
+        END { if (!found) print 0 }'
+}
+
+# Monitor containing point PX,PY: MX MY MW MH (falls back to the first monitor)
+monitor_at() {
+    local i
+    i=$(monitor_index_at "$1" "$2")
+    monitors | sed -n "$((i + 1))p"
+}
+
+clamp() { # value min max
+    local v=$1 lo=$2 hi=$3
+    [ "$hi" -lt "$lo" ] && hi=$lo
+    [ "$v" -lt "$lo" ] && v=$lo
+    [ "$v" -gt "$hi" ] && v=$hi
+    echo "$v"
+}
+
+# --------------------------------------------------------------- commands ---
+
+cmd_move() {
+    local id=$1 dir=$2 step=$3
+    local x y w h fl fr ft fb rw rh nx ny
+    prepare_window "$id"
+    read -r x y w h <<< "$(client_geometry "$id")"
+    read -r fl fr ft fb <<< "$(frame_extents "$id")"
+    read -r rw rh <<< "$(root_size)"
+
+    nx=$x
+    ny=$y
+    case "$dir" in
+        left)  nx=$((x - step)) ;;
+        right) nx=$((x + step)) ;;
+        up)    ny=$((y - step)) ;;
+        down)  ny=$((y + step)) ;;
+        *)     usage ;;
+    esac
+
+    # keep the whole frame on screen
+    nx=$(clamp "$nx" "$fl" $((rw - w - fr)))
+    ny=$(clamp "$ny" "$ft" $((rh - h - fb)))
+
+    wmctrl -ir "$id" -e "10,$nx,$ny,-1,-1"
+}
+
+cmd_resize() {
+    local id=$1 how=$2 step=$3
+    local x y w h fl fr ft fb rw rh nw nh
+    prepare_window "$id"
+    read -r x y w h <<< "$(client_geometry "$id")"
+    read -r fl fr ft fb <<< "$(frame_extents "$id")"
+    read -r rw rh <<< "$(root_size)"
+
+    nw=$w
+    nh=$h
+    case "$how" in
+        grow-h)   nw=$((w + step)) ;;
+        shrink-h) nw=$((w - step)) ;;
+        grow-v)   nh=$((h + step)) ;;
+        shrink-v) nh=$((h - step)) ;;
+        *)        usage ;;
+    esac
+
+    # minimum size, and the frame must not grow past the screen edge
+    nw=$(clamp "$nw" "$MIN_W" $((rw - x - fr)))
+    nh=$(clamp "$nh" "$MIN_H" $((rh - y - fb)))
+
+    wmctrl -ir "$id" -e "0,-1,-1,$nw,$nh"
+}
+
+cmd_center() {
+    local id=$1
+    local x y w h fl fr ft fb mx my mw mh fw fh fx fy
+    prepare_window "$id"
+    read -r x y w h <<< "$(client_geometry "$id")"
+    read -r fl fr ft fb <<< "$(frame_extents "$id")"
+
+    # monitor under the centre of the window
+    read -r mx my mw mh <<< "$(monitor_at $((x + w / 2)) $((y + h / 2)))"
+    [ -n "$mw" ] || die "no monitor found"
+
+    # centre the whole frame, not only the client area
+    fw=$((w + fl + fr))
+    fh=$((h + ft + fb))
+    fx=$((mx + (mw - fw) / 2))
+    fy=$((my + (mh - fh) / 2))
+    # larger than the monitor: keep the top-left corner on it
+    [ "$fx" -lt "$mx" ] && fx=$mx
+    [ "$fy" -lt "$my" ] && fy=$my
+
+    wmctrl -ir "$id" -e "10,$((fx + fl)),$((fy + ft)),-1,-1"
+}
+
+cmd_monitor() {
+    local id=$1 which=$2
+    local n i j was_max x y w h fl fr ft fb
+    local sx sy sw sh tx ty tw th fw fh fx fy nfx nfy nw nh
+
+    n=$(monitors | wc -l)
+    [ "$n" -ge 2 ] || exit 0                 # single monitor: nothing to do
+
+    # remember maximized state: restore it on the target monitor
+    was_max=0
+    window_state "$id" | grep -q '_NET_WM_STATE_MAXIMIZED' && was_max=1
+    prepare_window "$id"                     # also un-maximizes
+
+    read -r x y w h <<< "$(client_geometry "$id")"
+    read -r fl fr ft fb <<< "$(frame_extents "$id")"
+
+    i=$(monitor_index_at $((x + w / 2)) $((y + h / 2)))
+    case "$which" in
+        next) j=$(( (i + 1) % n )) ;;
+        prev) j=$(( (i + n - 1) % n )) ;;
+        *)    usage ;;
+    esac
+    read -r sx sy sw sh <<< "$(monitors | sed -n "$((i + 1))p")"
+    read -r tx ty tw th <<< "$(monitors | sed -n "$((j + 1))p")"
+
+    # frame geometry; shrink the client if the frame does not fit the target
+    nw=$(clamp "$w" "$MIN_W" $((tw - fl - fr)))
+    nh=$(clamp "$h" "$MIN_H" $((th - ft - fb)))
+    fw=$((nw + fl + fr))
+    fh=$((nh + ft + fb))
+
+    # same relative position, scaled to the target monitor, frame kept on it
+    fx=$((x - fl))
+    fy=$((y - ft))
+    nfx=$((tx + (fx - sx) * tw / sw))
+    nfy=$((ty + (fy - sy) * th / sh))
+    nfx=$(clamp "$nfx" "$tx" $((tx + tw - fw)))
+    nfy=$(clamp "$nfy" "$ty" $((ty + th - fh)))
+
+    if [ "$nw" != "$w" ] || [ "$nh" != "$h" ]; then
+        wmctrl -ir "$id" -e "0,-1,-1,$nw,$nh"
+    fi
+    wmctrl -ir "$id" -e "10,$((nfx + fl)),$((nfy + ft)),-1,-1"
+
+    if [ "$was_max" = 1 ]; then
+        wmctrl -ir "$id" -b add,maximized_vert,maximized_horz
+    fi
+}
+
+cmd_info() {
+    local id pid x y w h fl fr ft fb
+    echo "Click on a window..."
+    id=$(xwininfo | awk '/Window id:/ {print $4}')
+    [ -n "$id" ] || die "no window selected"
+    # xwininfo may return the frame; the client is the child with WM_CLASS
+    if ! xprop -id "$id" WM_CLASS 2>/dev/null | grep -q '"'; then
+        id=$(xwininfo -tree -id "$id" | awk '/"[^"]*": \("/ {print $1; exit}')
+    fi
+    [ -n "$id" ] || die "no client window found"
+    id=$(printf '0x%08x' "$id")
+    pid=$(xprop -id "$id" _NET_WM_PID | awk '{print $NF}')
+    read -r x y w h <<< "$(client_geometry "$id")"
+    read -r fl fr ft fb <<< "$(frame_extents "$id")"
+
+    echo "window id : $id"
+    echo "title     : $(xprop -id "$id" _NET_WM_NAME | cut -d'"' -f2)"
+    echo "class     : $(xprop -id "$id" WM_CLASS | awk -F'= ' '{print $2}')"
+    echo "pid       : $pid ($(ps -o comm= -p "$pid" 2>/dev/null))"
+    echo "desktop   : $(xprop -id "$id" _NET_WM_DESKTOP | awk '{print $NF}')"
+    local wtype
+    wtype=$(window_type "$id" | awk -F'= ' 'NF > 1 {print $2}' | sed 's/_NET_WM_WINDOW_TYPE_//g')
+    echo "type      : ${wtype:-NORMAL (not set)}"
+    echo "state     : $(window_state "$id" | sed 's/.*= //;s/_NET_WM_STATE_//g;s/.*:.*//')"
+    echo "client    : ${w}x${h}+${x}+${y}"
+    echo "frame     : left $fl, right $fr, top $ft, bottom $fb"
+    echo "gravity   : $(xprop -id "$id" WM_NORMAL_HINTS | awk -F': ' '/gravity/ {print $2}')"
+}
+
+# ------------------------------------------------------------------- main ---
+
+WIN=""
+if [ "${1:-}" = "-w" ]; then
+    [ $# -ge 2 ] || usage
+    WIN=$2
+    shift 2
+fi
+
+CMD="${1:-}"
+case "$CMD" in
+    move|resize)
+        [ $# -ge 2 ] || usage
+        ARG=$2
+        PX="${3:-$STEP}"
+        [[ "$PX" =~ ^[0-9]+$ ]] || die "invalid step '$PX'"
+        if [ -z "$WIN" ]; then
+            WIN=$(active_window) || die "no active window"
+        fi
+        "cmd_$CMD" "$WIN" "$ARG" "$PX"
+        ;;
+    center)
+        if [ -z "$WIN" ]; then
+            WIN=$(active_window) || die "no active window"
+        fi
+        cmd_center "$WIN"
+        ;;
+    monitor)
+        [ $# -ge 2 ] || usage
+        if [ -z "$WIN" ]; then
+            WIN=$(active_window) || die "no active window"
+        fi
+        cmd_monitor "$WIN" "$2"
+        ;;
+    info)
+        cmd_info
+        ;;
+    *)
+        usage
+        ;;
+esac
