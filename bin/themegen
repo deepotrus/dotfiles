@@ -1,0 +1,13 @@
+#!/bin/bash
+# Run ~/.dotfiles/themegen/main.py from anywhere (eww, themesel, terminal).
+# Uses the ~/.base python environment when present, otherwise python3.
+#
+#   themegen --id wy3j67 --icons suru
+#   themegen --help
+
+THEMEGEN_DIR="$(dirname "$(readlink -f "$0")")/../themegen"
+
+PYTHON="$HOME/.base/bin/python"
+[ -x "$PYTHON" ] || PYTHON=python3
+
+exec "$PYTHON" "$THEMEGEN_DIR/main.py" "$@"

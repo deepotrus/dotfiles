@@ -1,0 +1,18 @@
+materia-theme: drop the handle-*-hover/active GTK2 assets from assets.txt.
+They are listed but do not exist in assets.svg / assets-dark.svg, so rendering
+them with rendersvg (resvg) fails and stops the theme build.
+
+--- a/src/gtk-2.0/assets.txt	2026-11-18 12:40:52.055466994 +0100
++++ b/src/gtk-2.0/assets.txt	2026-11-18 12:40:52.055466994 +0100
+@@ -98,11 +98,7 @@
+ scrollbar-vert-rtl-slider-disabled
+ scrollbar-vert-rtl-trough
+ handle-horz
+-handle-horz-hover
+-handle-horz-active
+ handle-vert
+-handle-vert-hover
+-handle-vert-active
+ pan-up
+ pan-up-disabled
+ pan-up-alt

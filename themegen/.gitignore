@@ -1,0 +1,8 @@
+# upstream theme sources, downloaded by fetch-upstream.sh (~500 MB)
+/materia-theme/
+/icons_numix/
+/icons_papirus/
+/icons_suruplus/
+/.upstream/
+
+__pycache__/
