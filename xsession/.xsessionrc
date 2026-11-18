@@ -1,0 +1,9 @@
+# ~/.xsessionrc - sourced by Debian's /etc/X11/Xsession (40x11-common_xsessionrc)
+# before the XFCE session starts. Everything graphical inherits this
+# environment: eww, rofi, keyboard shortcuts, autostart, terminals.
+# (The XFCE session does not read ~/.profile.)
+#
+# Takes effect after logging out and in again.
+
+# Scripts from the dotfiles repo (not stowed, used in place), then local tools
+export PATH="$HOME/.dotfiles/bin:$HOME/.local/bin:$PATH"

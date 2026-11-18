@@ -53,6 +53,18 @@ Then, in xfce4 go to Settings > Window Manager > Style, and select xfwm-borders.
 
 Now combine everything! With lxappearance GUI it is easy to set new custom themes with pywal colors, exported with oomox in the folders ~/.themes (general theme) and ~/.icons (for file manager icons). If you wish to use a custom cursor theme, you will have to put the files inside ~/.icons, and lxappearance will recognize it.
 
+### Scripts: bin/ (not stowed)
+The scripts in `bin/` are used in place from `~/.dotfiles/bin`, so a new script there is available
+at once, without stowing, and `~/.local/bin` only holds tools installed by other means (pipx, ...).
+`~/.dotfiles/bin` is put on the PATH in two places:
+```bash
+$ stow xsession   # ~/.xsessionrc: PATH for the graphical session (eww, rofi, shortcuts, autostart)
+$ stow zsh        # ~/.zshrc: PATH for shells, e.g. ssh / tty logins
+```
+The XFCE session does not read `~/.profile`, Debian's Xsession sources `~/.xsessionrc` instead
+(log out and in after stowing it). Keyboard shortcuts and autostart entries still call the
+scripts by full path (`sh -c "$HOME/.dotfiles/bin/..."`), so they work even without it.
+
 ### Compositor and Activity Switcher
 Use as picom as compositor for animations and skippy-xd for alt-tab behavior.
 ```bash
@@ -83,7 +95,7 @@ There are two skippy-xd profiles: `skippy-xd-work.rc` (2 monitors) and `skippy-x
 (single ultrawide). `skippy-start` picks one, links it as `~/.config/skippy-xd/skippy-xd.rc`
 (backing up a real file there to `skippy-xd.rc.bak`) and (re)starts the daemon:
 ```bash
-$ stow skippy-xd bin
+$ stow skippy-xd
 $ skippy-start            # auto: 2+ monitors -> work, otherwise home
 $ skippy-start home       # force a profile
 $ echo home > ~/.config/skippy-xd/profile   # persistent per-machine override (untracked)
@@ -93,7 +105,7 @@ The daemon log is `~/.cache/skippy-xd.log` (includes the exit code if it dies).
 pywal accent (color2) and reloads skippy; `skippy-accent '#RRGGBB'` sets a colour by hand.
 
 Autostart entry (`~/.config/autostart/activity switcher.desktop`):
-`Exec=sh -c "$HOME/.local/bin/skippy-start"`
+`Exec=sh -c "$HOME/.dotfiles/bin/skippy-start"`
 There are more infos on the official page on how to use skippy-xd!
 
 ### Keyboard window management: xfwmctrl

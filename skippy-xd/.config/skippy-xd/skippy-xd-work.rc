@@ -1,7 +1,7 @@
 # Skippy-xd config file
 #
 # WORK profile (2 monitors). Converted from skippy-xd-work-legacy.rc (0.5-era format,
-# ignored by skippy-xd 0.10.x). Selected by ~/.local/bin/skippy-start.
+# ignored by skippy-xd 0.10.x). Selected by ~/.dotfiles/bin/skippy-start.
 #
 # Skippy-xd searches for this file in these locations,
 #    According to this order:

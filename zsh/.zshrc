@@ -2,7 +2,11 @@ zstyle ':omz:update' mode disabled  # disable automatic updates
 ZSH_THEME="alanpeabody"
 
 export ZSH="$HOME/.oh-my-zsh"
-export PATH="${PATH}:${HOME}/.local/bin/"
+export PATH="${PATH}:${HOME}/.local/bin"
+# scripts from the dotfiles repo, used in place (also set for the graphical
+# session in ~/.xsessionrc); typeset -U drops the duplicates that creates
+export PATH="${HOME}/.dotfiles/bin:${PATH}"
+typeset -U path
 
 # -------------- ALIASES --------------
 alias ..="cd .."

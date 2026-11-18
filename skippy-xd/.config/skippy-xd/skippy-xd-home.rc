@@ -1,6 +1,6 @@
 # Skippy-xd config file
 #
-# HOME profile (single ultrawide). Selected by ~/.local/bin/skippy-start.
+# HOME profile (single ultrawide). Selected by ~/.dotfiles/bin/skippy-start.
 #
 # Skippy-xd searches for this file in these locations,
 #    According to this order:

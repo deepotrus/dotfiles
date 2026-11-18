@@ -72,7 +72,8 @@ zathura-pywal -a 0.8
 walogram
 
 # Update skippy-xd hover label colour to the new pywal accent (color2)
-skippy-accent
+# (called from this script's own folder, works without PATH set up)
+"$(dirname "$(readlink -f "$0")")/skippy-accent"
 
 # ----- APPENDIX -----
 # Steps used to build this utility
