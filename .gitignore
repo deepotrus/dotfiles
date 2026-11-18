@@ -1,1 +1,7 @@
 newsboat/.config/newsboat/urls
+
+# xfconf writes every settings channel into this (stowed) folder; channels are
+# per machine except the ones tracked below
+xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/*
+!xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml
+!xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml

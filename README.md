@@ -47,8 +47,13 @@ Few people know that in xfce4 you can set independently the borders of the windo
 It is possible to make xfwm inherit the colors from gtk theme, which is created with themix-gui. Changing gtk theme would automatically change the border color of your open applications runtime. Here, stow is used for creating symbolic links automatically.
 ```bash
 $ cd dotfiles
+$ mkdir -p ~/.themes        # must be a real folder before stowing, see below
 $ stow xfwm-borders
 ```
+`~/.themes` is a real folder, not a link into this repo: stow then links only the two border
+themes into it, while the generated pywal materia themes (`~/.themes/pywal-materia-themes`,
+made by themegen) and the wallpapers (`~/.themes/walls/dark|light`, used by themesel) stay local
+to each machine and out of git.
 Then, in xfce4 go to Settings > Window Manager > Style, and select xfwm-borders. The second xfwm-borders theme includes rounded borders which was adjusted by me for picom compositor with rounded corner option. This allows to have rounded and colored borders on Xfce4!
 
 Now combine everything! With lxappearance GUI it is easy to set new custom themes with pywal colors, exported with oomox in the folders ~/.themes (general theme) and ~/.icons (for file manager icons). If you wish to use a custom cursor theme, you will have to put the files inside ~/.icons, and lxappearance will recognize it.
@@ -153,9 +158,13 @@ For this just go in firefox to about:config look for browser.tabs.inTitlebar and
 ### Stowing XFCE4
 Stowing the dotfiles into ~/.config/xfce4 is not enough for the update to take effect. XFCE4 reads its config from xfconf (an in-memory daemon), not directly from XML files on disk. The xml files ~/.config/xfce4 are used only to initialize xfconf when no in-memory config exists. So no even a log out log in will update the new stowed xfce4 config. The simplest solution is to just reboot the system after stowing:
 ```bash
-$ stow xfce4
+$ stow xfce-perchannel-xml
 $ sudo reboot
 ```
+The whole `xfce-perchannel-xml` folder is linked, so xfconf writes every settings channel into
+this repo. Only `xfce4-keyboard-shortcuts.xml` and `keyboard-layout.xml` are shared between
+machines; all other channels (panel, desktop, displays, xfwm4, ...) are per machine and ignored in
+`.gitignore`. To share another channel, add a `!` line for it there.
 
 ### Stowing tmux
 I use tpm for tmux plugins. It is necessary to clone the tpm plugin from github in the correct dir:
