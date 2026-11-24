@@ -5,3 +5,11 @@ newsboat/.config/newsboat/urls
 xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/*
 !xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml
 !xfce-perchannel-xml/.config/xfce4/xfconf/xfce-perchannel-xml/keyboard-layout.xml
+
+# skippy-xd per-machine files: generated active config (skippy-start), pywal
+# accent (skippy-accent) and profile override. Only matters when stow folded
+# ~/.config/skippy-xd into the repo.
+skippy-xd/.config/skippy-xd/skippy-xd.rc
+skippy-xd/.config/skippy-xd/skippy-xd.rc.bak
+skippy-xd/.config/skippy-xd/accent
+skippy-xd/.config/skippy-xd/profile

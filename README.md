@@ -97,8 +97,9 @@ $ make
 $ sudo make install
 ```
 There are two skippy-xd profiles: `skippy-xd-work.rc` (2 monitors) and `skippy-xd-home.rc`
-(single ultrawide). `skippy-start` picks one, links it as `~/.config/skippy-xd/skippy-xd.rc`
-(backing up a real file there to `skippy-xd.rc.bak`) and (re)starts the daemon:
+(single ultrawide). `skippy-start` picks one, generates `~/.config/skippy-xd/skippy-xd.rc` from it
+(git-ignored copy; a hand-made file there is backed up to `skippy-xd.rc.bak`) and (re)starts the daemon.
+After editing a profile, run `skippy-start` again (or `skippy-start -r` to reload without restart):
 ```bash
 $ stow skippy-xd
 $ skippy-start            # auto: 2+ monitors -> work, otherwise home
@@ -106,8 +107,10 @@ $ skippy-start home       # force a profile
 $ echo home > ~/.config/skippy-xd/profile   # persistent per-machine override (untracked)
 ```
 The daemon log is `~/.cache/skippy-xd.log` (includes the exit code if it dies).
-`themesel` runs `skippy-accent`, which sets the hovered-label colour in both profiles to the
-pywal accent (color2) and reloads skippy; `skippy-accent '#RRGGBB'` sets a colour by hand.
+`themesel` runs `skippy-accent`, which stores the pywal accent (color2) in
+`~/.config/skippy-xd/accent` (per machine, git-ignored), regenerates `skippy-xd.rc` with it as
+hovered-label colour and reloads skippy. The tracked profiles stay unchanged.
+`skippy-accent '#RRGGBB'` sets a colour by hand.
 
 Autostart entry (`~/.config/autostart/activity switcher.desktop`):
 `Exec=sh -c "$HOME/.dotfiles/bin/skippy-start"`

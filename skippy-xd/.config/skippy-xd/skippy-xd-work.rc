@@ -145,13 +145,14 @@ backgroundTinting = true
 # option = windowClass to display window class
 # option = windowTitle to display window title
 [label]
-show = false
+show = true
 option = windowTitle
 offsetX = 0
 offsetY = 6
 width = 0.8
 border = #1a1a1a
 background = #1a1a1a
+# overridden per machine by ~/.config/skippy-xd/accent (see skippy-accent)
 backgroundHighlight = #D36E1E
 opacity = 150
 text = #f0f0f0

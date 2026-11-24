@@ -1,7 +1,11 @@
 #!/bin/bash
-# Set the skippy-xd hover label colour ([label] backgroundHighlight) in both
-# profiles to the current pywal accent, then reload the running daemon.
+# Set the skippy-xd hover label colour ([label] backgroundHighlight) to the
+# current pywal accent, then regenerate the active config and reload the daemon.
 # Called by themesel after "wal" has generated the new palette.
+#
+# The colour is stored in ~/.config/skippy-xd/accent (per machine, git-ignored).
+# The tracked profiles skippy-xd-{home,work}.rc are not touched: skippy-start
+# applies the accent when it generates ~/.config/skippy-xd/skippy-xd.rc.
 #
 # Usage:
 #   skippy-accent            use pywal color2 from ~/.cache/wal/colors
@@ -10,6 +14,7 @@
 set -euo pipefail
 
 CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/skippy-xd"
+ACCENT_FILE="$CONF_DIR/accent"
 WAL_COLORS="${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors"
 
 if [ $# -ge 1 ]; then
@@ -24,19 +29,10 @@ if ! [[ "$ACCENT" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
     exit 1
 fi
 
-for PROFILE in "$CONF_DIR/skippy-xd-home.rc" "$CONF_DIR/skippy-xd-work.rc"; do
-    if [ ! -e "$PROFILE" ]; then
-        echo "skippy-accent: missing $PROFILE, skipped" >&2
-        continue
-    fi
-    # --follow-symlinks: the profiles are stow links into ~/.dotfiles, edit the
-    # target instead of replacing the link with a plain file
-    sed -i --follow-symlinks \
-        '/^\[label\]/,/^\[/ s/^backgroundHighlight = .*/backgroundHighlight = '"$ACCENT"'/' \
-        "$PROFILE"
-done
-echo "skippy-accent: label highlight set to $ACCENT"
+mkdir -p "$CONF_DIR"
+echo "$ACCENT" > "$ACCENT_FILE"
+echo "skippy-accent: label highlight set to $ACCENT ($ACCENT_FILE)"
 
-if pgrep -f '^skippy-xd --start-daemon' > /dev/null; then
-    timeout 3 skippy-xd --config-reload > /dev/null 2>&1 || true
-fi
+# Regenerate skippy-xd.rc with the new accent and reload the running daemon
+# (called from this script's own folder, works without PATH set up)
+"$(dirname "$(readlink -f "$0")")/skippy-start" --reload
