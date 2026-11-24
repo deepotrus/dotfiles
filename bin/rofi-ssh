@@ -1,0 +1,105 @@
+#!/bin/bash
+# rofi script mode: ssh launcher for the hosts in ~/.ssh/config.
+#
+#   rofi -show remote        (modi "remote:~/.dotfiles/bin/rofi-ssh" in config.rasi)
+#
+# Keys (kb-custom-1..3 in config.rasi):
+#   Enter       ssh into the host in a new kitty window
+#   Alt+Enter   open the remote home folder in thunar (sftp://)
+#   Alt+c       copy "ssh <host>" to the clipboard
+#   Alt+x       ssh -X (X11 forwarding: remote GUI programs open on this screen)
+# Typing a host that is not listed (e.g. user@10.1.0.77) and Enter connects to it.
+#
+# Tags read from ~/.ssh/config, as comment lines inside a Host block:
+#   # desc: Zynq board in the lab    text shown next to the host
+#   # rofi: hide                     do not list this host (e.g. git servers)
+#
+# Hosts are listed in file order, duplicates once, wildcard patterns skipped.
+# User and HostName come from "ssh -G", so Match/Include rules are respected.
+
+set -uo pipefail
+
+SSH_CONFIG="$HOME/.ssh/config"
+TERMINAL="kitty"
+
+# Run a GUI command detached from rofi, otherwise rofi waits for it
+launch() {
+    setsid -f "$@" > /dev/null 2>&1 < /dev/null
+}
+
+# Print "host<TAB>description" for each listed Host in the config
+list_hosts() {
+    [ -r "$SSH_CONFIG" ] || return 0
+    awk '
+        function flush() {
+            if (n > 0 && !hide)
+                for (i = 1; i <= n; i++)
+                    if (!(names[i] in seen)) { seen[names[i]] = 1; print names[i] "\t" desc }
+            n = 0; hide = 0; desc = ""
+        }
+        tolower($1) == "host" || tolower($1) == "match" {
+            flush()
+            if (tolower($1) == "host")
+                for (f = 2; f <= NF; f++)
+                    if ($f !~ /[*?!]/) names[++n] = $f
+            next
+        }
+        /^[ \t]*#[ \t]*desc:/ { sub(/^[ \t]*#[ \t]*desc:[ \t]*/, ""); desc = $0; next }
+        /^[ \t]*#[ \t]*rofi:[ \t]*hide/ { hide = 1; next }
+        END { flush() }
+    ' "$SSH_CONFIG"
+}
+
+# Effective "user hostname" for a host alias
+resolve() {
+    ssh -G "$1" 2> /dev/null | awk '$1 == "user" { u = $2 } $1 == "hostname" { h = $2 } END { print u, h }'
+}
+
+escape() {
+    sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' <<< "$1"
+}
+
+if [ -z "${ROFI_RETV:-}" ]; then
+    echo "rofi-ssh: run it from rofi: rofi -show remote" >&2
+    exit 1
+fi
+
+# ROFI_RETV: 0 first call, 1 entry selected, 2 typed text (not in the list),
+# 10.. kb-custom-1.. ; the host alias is in ROFI_INFO, typed text in $1
+HOST="${ROFI_INFO:-${1:-}}"
+if [ "$ROFI_RETV" -ne 0 ] && [ -n "$HOST" ]; then
+    case "$ROFI_RETV" in
+        1|2) launch "$TERMINAL" --title "ssh $HOST" ssh "$HOST" ;;
+        10) read -r USER_ HOSTNAME_ <<< "$(resolve "$HOST")"
+            if [ "$USER_" = "root" ]; then RHOME="/root"; else RHOME="/home/$USER_"; fi
+            launch thunar "sftp://$HOST$RHOME" ;;
+        # xclip stays in the background to own the clipboard: its stdout/stderr
+        # must not be rofi's pipe, or rofi waits forever while holding the
+        # keyboard and mouse grab (whole desktop frozen)
+        11) printf 'ssh %s' "$HOST" | xclip -selection clipboard > /dev/null 2>&1 ;;
+        12) launch "$TERMINAL" --title "ssh -X $HOST" ssh -X "$HOST" ;;
+    esac
+    exit 0
+fi
+
+# no \0prompt: it would also replace the tab label (display-remote in config.rasi)
+printf '\0markup-rows\x1ftrue\n'
+# Without this rofi does not pass kb-custom-N (Alt+Enter, Alt+c, Alt+x) to scripts
+printf '\0use-hot-keys\x1ftrue\n'
+printf '\0message\x1fEnter ssh · Alt+Enter files · Alt+x X11 · Alt+c copy\n'
+
+while IFS=$'\t' read -r HOST DESC; do
+    read -r USER_ HOSTNAME_ <<< "$(resolve "$HOST")"
+    TARGET="$USER_@$HOSTNAME_"
+    LINE="<b>$(escape "$HOST")</b>"
+    # The address only adds information when the alias is not the address itself
+    if [ "$HOST" != "$HOSTNAME_" ]; then
+        LINE="$LINE  <span alpha=\"60%\">$(escape "$TARGET")</span>"
+    else
+        LINE="$LINE  <span alpha=\"60%\">$(escape "$USER_")</span>"
+    fi
+    if [ -n "$DESC" ]; then
+        LINE="$LINE  <i>$(escape "$DESC")</i>"
+    fi
+    printf '%s\0icon\x1fnetwork-server\x1finfo\x1f%s\n' "$LINE" "$HOST"
+done < <(list_hosts)

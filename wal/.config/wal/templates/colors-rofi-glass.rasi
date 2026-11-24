@@ -1,0 +1,15 @@
+/* Frosted-glass colours for rofi (~/.config/rofi/config.rasi).
+ * pywal template: rendered to ~/.cache/wal/colors-rofi-glass.rasi on every
+ * "wal" run. Literal braces are doubled because pywal uses str.format().
+ * The accent is color2, the same as the skippy-xd hover label (skippy-accent).
+ */
+* {{
+    glass-bg:        rgba({background.rgb}, 0.72);
+    glass-bg-input:  rgba({color8.rgb}, 0.30);
+    glass-border:    rgba({color2.rgb}, 0.55);
+    glass-accent:    {color2};
+    glass-sel:       rgba({color2.rgb}, 0.85);
+    glass-sel-fg:    {foreground};
+    glass-fg:        {foreground};
+    glass-fg-dim:    rgba({foreground.rgb}, 0.55);
+}}

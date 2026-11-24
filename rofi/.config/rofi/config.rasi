@@ -1,108 +1,136 @@
 configuration{
-    modi: "drun,ssh";
-    lines: 8;
-    font: "JetBrainsMono Nerd Font 14";
+    modi: "drun,remote:~/.dotfiles/bin/rofi-ssh";
+    font: "JetBrainsMono Nerd Font 13";
     show-icons: true;
-    icon-theme: "Papirus";
-    terminal: "alacritty";
-    drun-display-format: "{icon} {name}";
-    location: 0;
+    /* icon-theme: set per launch by bin/rofi-launch from the XFCE icon theme */
+    terminal: "kitty";
+    /* generic name dimmed after the app name, e.g. "Thunar  File Manager" */
+    drun-display-format: "{name}[  <span alpha='55%'>{generic}</span>]";
     disable-history: false;
-    hide-scrollbar: true;
     display-drun: "   Apps ";
     display-run: " > Run ";
     display-window: "  Win";
     display-Network: "   Network";
+    display-remote: "  SSH";
     sidebar-mode: true;
+
+    /* rofi-ssh actions (kb-custom-N reaches the script as ROFI_RETV 9+N) */
+    kb-custom-1: "Alt+Return";
+    kb-custom-2: "Alt+c";
+    kb-custom-3: "Alt+x";
 }
 
-@theme "~/.cache/wal/colors-rofi-dark.rasi"
+/* Frosted glass: translucent pywal background, picom blurs what is behind it
+ * (rule for class_g 'Rofi' in picom.conf, its corner-radius matches the window
+ * border-radius below). Colours come from the pywal template
+ * ~/.config/wal/templates/colors-rofi-glass.rasi (dotfiles package "wal").
+ * Start from an empty theme: the pywal colors-rofi-dark.rasi sets opaque
+ * backgrounds on every element state. */
+@theme "/dev/null"
+@import "~/.cache/wal/colors-rofi-glass.rasi"
 
-element-text, element-icon , mode-switcher {
-    background-color: inherit;
-    text-color:       inherit;
+* {
+    background-color: transparent;
+    text-color:       @glass-fg;
+    spacing:          0;
 }
 
+/* Anchored by the bottom edge (bottom at 78% of the monitor height), so the
+ * tab buttons stay under the mouse when switching tabs, whatever the height
+ * of each tab. Centred anchoring moved them out from under the pointer when
+ * the window shrank, and the click then closed rofi (click-to-exit). */
 window {
-    width: 900px;
-    height: 390px;
-    border: 1px;
-    border-color: @selected-active-background;
-    border-radius: 10px;
-    background-color: @background-color;
+    location:         south;
+    anchor:           south;
+    y-offset:         -22%;
+    width:            640px;
+    /* same height in every tab: 8 rows + the SSH hint line (the hint is only
+     * shown in the SSH tab, rofi cannot reserve its space in Apps) */
+    height:           590px;
+    padding:          18px;
+    border:           1px;
+    border-color:     @glass-border;
+    border-radius:    14px;
+    background-color: @glass-bg;
 }
 
 mainbox {
-    background-color: @background-color;
+    spacing:  12px;
+    children: [ inputbar, message, listview, mode-switcher ];
 }
 
 inputbar {
-    children: [prompt,entry];
-    background-color: @background;
-    border-radius: 6px;
-    padding: 2px;
+    children:         [ prompt, entry ];
+    spacing:          10px;
+    padding:          10px 14px;
+    border-radius:    10px;
+    background-color: @glass-bg-input;
 }
 
 prompt {
-    background-color: @background;
-    padding: 6px;
-    text-color: @urgent-background;
-    border-radius: 3px;
-    margin: 20px 0px 0px 20px;
-}
-
-textbox-prompt-colon {
-    expand: false;
-    str: ":";
+    text-color: @glass-accent;
 }
 
 entry {
-    padding: 6px;
-    margin: 20px 0px 0px 10px;
-    text-color: @foreground;
-    background-color: @background-color;
-    placeholder:"Search";
+    placeholder:       "Search";
+    placeholder-color: @glass-fg-dim;
+    cursor:            text;
+}
 
+message {
+    padding: 0px 4px;
+}
+
+textbox {
+    text-color: @glass-fg-dim;
 }
 
 listview {
-    border: 0px 0px 0px;
-    padding: 6px 0px 0px;
-    margin: 10px 0px 0px 20px;
-    columns: 2;
-    background-color: @background-color;
+    lines:     8;
+    columns:   1;
+    dynamic:   true;
+    /* fixed-height stays true (default): with a shrinking list the search
+     * field would move while typing, because the window bottom is anchored */
+    scrollbar: false;
+    spacing:   4px;
 }
 
 element {
-    padding: 5px;
-    background-color: @background-color;
-    text-color: @foreground;
-}
-
-element-icon {
-    size: 25px;
+    padding:       8px 12px;
+    spacing:       12px;
+    border-radius: 8px;
 }
 
 element selected {
-    background-color:  @selected-normal-background;
-    text-color: @selected-normal-foreground;
+    background-color: @glass-sel;
+    text-color:       @glass-sel-fg;
+}
+
+/* transparent, not inherit: inheriting the translucent row colour would
+ * paint it a second time on top of the row (darker box) */
+element-icon {
+    size:             32px;
+    background-color: transparent;
+}
+
+element-text {
+    vertical-align:   0.5;
+    background-color: transparent;
+    text-color:       inherit;
 }
 
 mode-switcher {
-    spacing: 0;
-  }
+    spacing: 8px;
+}
 
 button {
-    padding: 10px;
-    margin: 10px;
-    background-color: @active-background;
-    text-color: @alternate-active-background;
-    border-radius: 10px;
-    vertical-align: 0.5;
-    horizontal-align: 0.5;
+    padding:          6px;
+    border-radius:    8px;
+    background-color: @glass-bg-input;
+    text-color:       @glass-fg-dim;
 }
 
 button selected {
-  background-color: @selected-active-background;
-  text-color: @foreground;
+    background-color: @glass-sel;
+    text-color:       @glass-sel-fg;
 }

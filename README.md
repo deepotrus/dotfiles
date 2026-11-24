@@ -133,6 +133,36 @@ stowed, so shortcuts set in the GUI or with `xfconf-query` land directly in this
 argument (`xfwmctrl move left 32`) changes the step. No per-application corrections are needed:
 every request passes an explicit gravity to xfwm4 (see the comment at the top of the script).
 
+### Launcher style: rofi
+Frosted glass, matching the skippy-xd labels: a translucent pywal background that picom
+blurs (rule for `class_g = 'Rofi'` in `picom.conf`), one column with 32 px icons and the
+generic name dimmed after the app name, selection in the pywal accent (color2, the same as
+the skippy hover label).
+- Colours: pywal template `wal/.config/wal/templates/colors-rofi-glass.rasi`, rendered to
+  `~/.cache/wal/colors-rofi-glass.rasi` on every `wal` run. Install it once with
+  `stow wal`, then `wal -R -n -s -t -e` renders it without touching wallpaper or terminals.
+- Icons: `bin/rofi-launch` starts rofi with the XFCE icon theme (`/Net/IconThemeName`,
+  set by `themesel`), so rofi icons always follow the current pywal icon theme. The
+  shortcuts call `sh -c "$HOME/.dotfiles/bin/rofi-launch -show drun"` (or `-show remote`).
+- The window `border-radius` in `config.rasi` and the picom `corner-radius` of the rule
+  must stay equal (14), otherwise the blur shows past the rounded corners.
+
+### SSH launcher: rofi-ssh
+`rofi-ssh` (in `bin/`) is a rofi script mode listing the hosts of `~/.ssh/config` (kept out of
+the repo). It is the SSH tab of Super+Space (`rofi-launch -show drun`) and opens directly with
+Super+Shift+S (`rofi-launch -show remote`). Each host shows its user (and address when the alias
+differs from it). Comment tags inside a `Host` block: `# desc: some text` adds a description,
+`# rofi: hide` leaves the host out (git servers).
+
+| Keys | Action |
+|---|---|
+| Enter | ssh in a new kitty window titled `ssh <host>` |
+| Alt+Enter | open the remote home in thunar (`sftp://`) |
+| Alt+c | copy `ssh <host>` to the clipboard |
+| Alt+x | `ssh -X`: remote GUI programs (e.g. Vivado) open on this screen |
+
+A host typed in the search field that is not listed (e.g. `lvd@10.1.0.77`) connects on Enter.
+
 ### Pywalfox on Debian 13
 So, on debian it is a little bit harder, to make it easier you install pywalfox via python pip. But, the stable release has relative path which creates issue for Firefox to find the executable during runtime. So instead of running pip install pywalfox you do:
 ```bash

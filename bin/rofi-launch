@@ -1,0 +1,15 @@
+#!/bin/bash
+# Start rofi with the icon theme XFCE currently uses, so app icons follow the
+# pywal icon theme that themesel sets (xsettings /Net/IconThemeName, e.g.
+# pywal-icons/icons-vpyvm5). rofi does not read xsettings itself.
+#
+# Usage: rofi-launch <rofi arguments>, e.g.
+#   rofi-launch -show drun       (Super+Space)
+#   rofi-launch -show remote     (Super+Shift+S)
+
+ICON_THEME="$(xfconf-query -c xsettings -p /Net/IconThemeName 2> /dev/null)"
+
+if [ -n "$ICON_THEME" ]; then
+    exec rofi -icon-theme "$ICON_THEME" "$@"
+fi
+exec rofi "$@"
